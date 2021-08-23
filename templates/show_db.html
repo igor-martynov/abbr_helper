@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<link rel="stylesheet" href="{{ url_for('static', filename='abbr_helper.css') }} ">
+	</head>
+	
+	<body>
+		{% include 'header.jinja2.html' %}
+		<div>
+			<br>
+			Abbreviations database:<br>
+			
+			<br>
+			<br>
+			<br>
+			
+			
+			{% for r in db %}
+			{{ r["id"] }} - {{ r["abbr"] }}: {{ r["descr"] }} -- [<a href="/edit-abbr/{{r['id']}}" >edit</a>] [<a href="/delete-abbr/{{r['id']}}" >delete</a>]<br>
+			{% endfor %}
+			=========================<br>
+			
+			{{ result | safe }}
+			<br>
+			<br>
+			<br>
+			
+		</div>
+    
+    </body>
+</html>

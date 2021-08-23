@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<meta charset="utf-8">
+		<link rel="stylesheet" href="{{ url_for('static', filename='abbr_helper.css') }} ">
+	</head>
+	
+	<body>
+		{% include 'header.jinja2.html' %}
+		<div>
+			<form class="space_between_scroll" action="" method="post">
+				<br>
+				<br>
+				<label for="name">Abbreviation:</label>
+				<input type="text" size="120" id="abbreviation" name="abbreviation" title="name of abbreviation" value="{{ abbr['abbr'] }}" required><br><br>
+				<label for="name">Description:</label>
+				<input type="text" size="120" id="description" name="description" title="description of abbreviation" value="{{ abbr['descr'] }}" required><br><br>
+				<label for="name">Group id:</label>
+				<input type="text" size="120" id="group_id" name="group_id" title="group id" value="{{ abbr['group_id'] | empty_on_None }}" ><br><br>
+				<label for="name">Comment:</label>
+				<input type="text" size="120" id="comment" name="comment" title="" value = "{{ abbr['comment'] }}"><br><br>
+				<br>
+				<br>
+				<label><input type="checkbox" name="disabled" value="disabled"> Disabled </label>
+				<br>
+				<input type="submit" value="Save abbreviation"><br>
+			</form>
+		</div>
+    
+    </body>
+</html>

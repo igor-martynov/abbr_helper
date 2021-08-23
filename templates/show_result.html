@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!-- ver0.4 -->
+<html>
+	<head>
+		<meta charset="utf-8">
+		<link rel="stylesheet" href="{{ url_for('static', filename='abbr_helper.css') }} ">
+	</head>
+	
+	<body> 
+		<div>
+			<br>
+			FOUND ABBRS:<br>
+			{% for abbr in found_abbrs %}
+			{{ abbr }},
+			{% endfor %}
+			
+			
+			<br>
+			<br>
+			<br>
+			REPORT:<br>
+			<br>
+			<br>
+			{{ report | safe}}
+			<br>
+			
+		</div>
+    
+    </body>
+</html>
