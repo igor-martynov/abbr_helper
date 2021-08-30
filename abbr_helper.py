@@ -568,11 +568,11 @@ class AbbrHelperWebApp(object):
 				comment = request.form["comment"]
 				disabled = True if request.form.get("disabled") is not None else False
 				if len(abbr_name) > 1 and len(descr) > 2:
-					pass
+					self._logger.info(f"create_abbr: did not added abbr. Reason: abbr {abbr_name} did not passed check, or description {descr} did not passed check")
 				else:
+					self.main_app.abbr_manager.create_abbr(abbr_name, descr = descr, comment = comment, disabled = False)
 					pass
 					
-				self.main_app.abbr_manager.create_abbr(abbr_name, descr = descr, comment = comment, disabled = False)
 				return render_template("create_edit_abbr.html", abbr = {})
 		
 		
@@ -611,7 +611,7 @@ class AbbrHelperWebApp(object):
 				return render_template("main_page.html")
 		
 				
-		# custom filters
+		# custom Jinja filters
 		self.web_app.jinja_env.filters["empty_on_None"] = empty_on_None
 		
 		self._logger.debug("run_web_interface: launching web app interface...")
@@ -628,5 +628,7 @@ if __name__ == "__main__":
 		ahwapp.init_main_app()
 		ahwapp.run_web_interface()
 		sys.exit(0)
+	
+	# print help and exit
 	
 	pass

@@ -26,10 +26,6 @@ class MetaSingleton(type):
 	def __call__(cls, *args, **kwargs):
 		if cls not in cls._instances:
 			cls._instances[cls] = super(MetaSingleton, cls).__call__(*args, **kwargs)
-			# print("D new instance of class created - " + str(cls._instances[cls]))
-			# print("D total instances:")
-			# for i in cls._instances:
-			# 	print("  -  " + str(i))
 		return cls._instances[cls]
 		
 
@@ -78,8 +74,7 @@ class DBQueryExecutor(object, metaclass = MetaSingleton):
 				argv[0] - dictionary of arguments
 				other args are ignored
 				
-		returns: list of rows, exactly as sqlite3.connection.cursor().execute().fetchall()
-		"""
+		returns: list of rows, exactly as sqlite3.connection.cursor().execute().fetchall()"""
 		if self.DB_FILE == "":
 			return None
 		
