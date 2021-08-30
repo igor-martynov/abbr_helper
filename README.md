@@ -1,5 +1,5 @@
 # abbr_helper
-Abbreviation helper web app
+Abbreviation helper web app.
 
 
 The main goal of this project is simple:
