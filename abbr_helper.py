@@ -286,7 +286,7 @@ class AbbrHelper(object):
 		self.result_abbrs = set()
 		
 		self._logger = logger
-		self.abbr_manager = AbbrManager(db_file = "./testdb", logger = self._logger.getChild("AbbrDB"))
+		self.abbr_manager = AbbrManager(db_file = os.path.join(os.path.abspath(os.path.dirname(__file__)), "abbr_helper.db"), logger = self._logger.getChild("AbbrDB"))
 	
 		self._logger.debug("AbbrHelper: inited")
 		self.report = ""
