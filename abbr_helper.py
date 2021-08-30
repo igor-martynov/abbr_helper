@@ -424,29 +424,6 @@ class AbbrHelper(object):
 			f.writelines(valid_lines)
 	
 	
-	# OLD version
-	# def get_all_abbrs(self):
-	# 	self.result_abbrs = set()
-		
-	# 	normalized_text = self.normalize_input_text()
-		
-	# 	# 
-	# 	for abbr, desc in self.db.items():
-	# 		if str(" " + abbr + " ") in normalized_text:
-	# 			self.result_abbrs.add(abbr)
-	# 		for d in desc:
-	# 			if d in self.input_text.lower():
-	# 				self.result_abbrs.add(d)
-		
-	# 	# 
-	# 	for w in self.input_word_list:
-	# 		if is_abbr(w):
-	# 			# print("ABBR FOUND")
-	# 			self.result_abbrs.add(w)
-				
-	# 	print("RESULTs ABBRS: " + str(self.result_abbrs))
-	
-	
 	# new version
 	def find_all_abbrs(self):
 		"""get all abbreviations from input text, either known or unknown"""
@@ -521,7 +498,6 @@ class AbbrHelperWebApp(object):
 	def init_main_app(self):
 		self._logger.debug("init_main_app: will init main app...")
 		self.main_app = AbbrHelper(db_file = "./DBs/abbr_database.csv", logger = self._logger.getChild("main_app"))
-		# self.main_app.load_db()
 	
 	
 	def check_upload_dir(self):
