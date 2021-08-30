@@ -53,7 +53,7 @@ class AbbrManager(object):
 	
 	
 	def get_abbrs_by_name(self, abbr_name):
-		"""find all descriptions of abbr
+		"""find all descriptions of one abbr
 		
 		arguments: name of the abbreviation
 		returns: list of descriptions if abbr exist, None otherwise
@@ -73,11 +73,17 @@ class AbbrManager(object):
 	
 	
 	def save_abbr(self, abbr):
+		"""
+		arguments: abbr - dict of abbr
+		"""
 		self._logger.debug("save_abbr: will save abbr " + str(abbr))
-		self.db.execute_db_query("""UPDATE abbrs SET name = :name, descr = :descr, group_id = :group_id, comment = :comment, disabled = :disabled WHERE id = :id""", {"id": abbr["id"], "name": abbr["abbr"], "descr": abbr["descr"], "group_id": abbr["group_id"], "comment": abbr["comment"], "disabled": 1 if abbr["disabled"] == True else 0})
-		
+		self.db.execute_db_query("""UPDATE abbrs SET name = :name, descr = :descr, group_id = :group_id, comment = :comment, disabled = :disabled WHERE id = :id""", {"id": abbr["id"],
+			"name": abbr["abbr"],
+			"descr": abbr["descr"],
+			"group_id": abbr["group_id"],
+			"comment": abbr["comment"],
+			"disabled": 1 if abbr["disabled"] is True else 0})
 		self._logger.info("save_abbr: saved abbr as: " + str(abbr))
-		pass
 	
 	
 	def delete_abbr_by_id(self, abbr_id):
