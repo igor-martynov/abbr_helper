@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# 2021-08-30
+# 2021-10-07
 
 __version__ = "0.8.3"
 __author__ = "Igor Martynov (phx.planewalker@gmail.com)"
@@ -560,19 +560,18 @@ class AbbrHelperWebApp(object):
 		def create_abbr():
 			if request.method == "GET":
 				return render_template("create_edit_abbr.html", abbr = {})
-			
 			if request.method == "POST":
 				abbr = {}
 				abbr_name = request.form["abbreviation"]
 				descr = request.form["description"]
 				comment = request.form["comment"]
 				disabled = True if request.form.get("disabled") is not None else False
-				if len(abbr_name) > 1 and len(descr) > 2:
-					self._logger.info(f"create_abbr: did not added abbr. Reason: abbr {abbr_name} did not passed check, or description {descr} did not passed check")
+				if len(abbr_name) < 2:
+					self._logger.info(f"create_abbr: did not added abbr. Reason: abbr {abbr_name} did not passed the check, too short")
+				elif len(descr) < 3:
+					self._logger.info(f"create_abbr: did not added abbr. Reason: description {descr} did not passed the check, too short")
 				else:
-					self.main_app.abbr_manager.create_abbr(abbr_name, descr = descr, comment = comment, disabled = False)
-					pass
-					
+					self.main_app.abbr_manager.create_abbr(abbr_name, descr = descr, comment = comment, disabled = disabled)	
 				return render_template("create_edit_abbr.html", abbr = {})
 		
 		
@@ -619,6 +618,11 @@ class AbbrHelperWebApp(object):
 	
 
 
+def print_help():
+	print(f"    {os.path.abspath(__file__)}: Manage abbreviations.")
+	print("    Use --web-app to lauch web interface. Other options currently not supported.")
+	print("")
+
 
 if __name__ == "__main__":
 	args = sys.argv[1:]
@@ -630,5 +634,5 @@ if __name__ == "__main__":
 		sys.exit(0)
 	
 	# print help and exit
-	
+	print_help()
 	pass

@@ -93,7 +93,7 @@ class DBQueryExecutor(object, metaclass = MetaSingleton):
 
 
 
-# TODO: uncertain if this needed
+# TODO: uncertain if this really needed
 class Abbreviation(object):
 	"""docstring for Abbreviation"""
 	def __init__(self):
