@@ -20,10 +20,10 @@ import sys
 import glob
 import traceback
 
-# docx
+# docx format support
 import docx
 
-# flask
+# flask web interface
 from flask import Flask, flash, request, redirect, url_for, Response, render_template
 from werkzeug.utils import secure_filename
 
@@ -38,7 +38,7 @@ from base_classes import *
 
 
 class AbbrManager(object):
-	"""Manage abbreviations itself"""
+	"""Manage abbreviations itself - create abbrs, create groups, save, edit, etc"""
 	
 	
 	def __init__(self, db_file = "", logger = None):
@@ -526,12 +526,12 @@ class AbbrHelperWebApp(object):
 				
 			if request.method == "POST":
 				if "file" not in request.files:
-					print("D no file part")
+					self._logger.error("upload_file: no file part found in request!")
 					return redirect(request.url)
 				
 				f = request.files["file"]
 				if f.filename == "":
-					self._logger.error("upload_file: no file selected")
+					self._logger.error("upload_file: no file selected in form")
 					return redirect(request.url)
 				
 				if f:
@@ -545,6 +545,34 @@ class AbbrHelperWebApp(object):
 					self.main_app.find_all_abbrs()
 					report = self.main_app.gen_report()
 					
+					os.remove(os.path.join(self.web_app.config["UPLOAD_FOLDER"], filename))
+				
+				return render_template("show_result.html", found_abbrs = self.main_app.result_abbrs, report = report.replace("\n", "<br>\n"))
+		
+		@self.web_app.route("/upload-db-file", methods = ["GET", "POST"])
+		def upload_db_file():
+			if request.method == "GET":
+				return render_template("upload_db_file.html")
+				
+			if request.method == "POST":
+				if "file" not in request.files:
+					self._logger.error("upload_db_file: no file part found in request!")
+					return redirect(request.url)
+				
+				f = request.files["file"]
+				if f.filename == "":
+					self._logger.error("upload_db_file: no file selected")
+					return redirect(request.url)
+				
+				if f:
+					# try\except here
+					filename = secure_filename(f.filename)
+					f.save(os.path.join(self.web_app.config["UPLOAD_FOLDER"], filename)) # currently only with temp file
+					self._logger.info("upload_db_file: uploaded file " + str(os.path.join(self.web_app.config["UPLOAD_FOLDER"], filename)))
+					
+					# read input file
+					
+					# finally delet temp file
 					os.remove(os.path.join(self.web_app.config["UPLOAD_FOLDER"], filename))
 				
 				return render_template("show_result.html", found_abbrs = self.main_app.result_abbrs, report = report.replace("\n", "<br>\n"))
