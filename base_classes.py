@@ -6,6 +6,11 @@ def empty_on_None(ivar):
 	return ivar if ivar is not None else ""
 
 
+def empty_filter(ivar):
+	"""return empty str if ivar is None or [] or {}"""
+	return ivar if (ivar is not None and len(ivar) != 0) else ""
+
+
 def is_abbr(word):
 	""""""
 	
@@ -45,13 +50,11 @@ class DBQueryExecutor(object, metaclass = MetaSingleton):
 	def create_new_db(self):
 		"""create schema for new db.
 		if some tables dont exist, they will be created.
-		if table exist, it will not be updated
-		"""
+		if table exist, it will not be updated"""
 		
 		self.execute_db_query("""CREATE TABLE IF NOT EXISTS abbrs(id INTEGER PRIMARY KEY AUTOINCREMENT,
 			name TEXT,
 			descr TEXT,
-			group_id INTEGER,
 			comment TEXT,
 			disabled INTEGER default 0)""")
 		
@@ -60,11 +63,15 @@ class DBQueryExecutor(object, metaclass = MetaSingleton):
 			comment TEXT,
 			disabled INTEGER  default 0)""")
 		
+		self.execute_db_query("""CREATE TABLE IF NOT EXISTS abbr_group(id INTEGER PRIMARY KEY AUTOINCREMENT,
+			abbr_id INTEGER,
+			group_id INTEGER)""")
+		
 		self.execute_db_query("""CREATE TABLE IF NOT EXISTS not_an_abbr(id INTEGER PRIMARY KEY AUTOINCREMENT,
 			name TEXT,
 			comment TEXT,
 			disabled INTEGER default 0)""")
-		
+	
 	
 	def execute_db_query(self, query, *argv):
 		"""execute DB query. DB connection will be created, query executed, then DB connection is destroyed.
@@ -93,11 +100,57 @@ class DBQueryExecutor(object, metaclass = MetaSingleton):
 
 
 
-# TODO: uncertain if this really needed
-class Abbreviation(object):
-	"""docstring for Abbreviation"""
+class BaseDAO(object):
+	"""Base class of all DAOs"""
+	def __init__(self, db = None, logger = None, factory = None):
+		super(BaseDAO, self).__init__()
+		self._db = db
+		self._logger = logger
+		self._factory = factory
+		self.dict = {}
+	
+	
+	def create(self, obj): pass
+	
+	def read(self, _id): pass
+	
+	def update(self, obj): pass
+	
+	def delete(self, obj): pass
+
+
+
+class BaseFactory(object):
+	"""Base class of all factories"""
 	def __init__(self):
-		super(Abbreviation, self).__init__()
+		super(BaseFactory, self).__init__()
 		
 		pass
-		
+	
+	
+	def create(self): pass
+	
+	def create_from_db_row(self): pass
+	
+
+
+class BaseManager(object):
+	"""docstring for BaseManager"""
+	def __init__(self, db = None, logger = None):
+		super(BaseManager, self).__init__()
+		self._db = db
+		self._logger = logger
+		self.dict = {}
+	
+	
+	def save(self):
+		raise NotImplemented
+	
+	
+	def delete(self):
+		raise NotImplemented
+	
+	def create(self):
+		raise NotImplemented
+	
+	

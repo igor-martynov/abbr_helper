@@ -9,19 +9,13 @@
 		{% include 'header.jinja2.html' %}
 		<div>
 			<br>
-			Abbreviations database:<br>
-			
+			Groups:<br>
 			<br>
 			<br>
 			<br>
-			
-			
-			{% for r in db %}
-			{{ r }} -- [<a href="/edit-abbr/{{r['id']}}" >edit</a>] [<a href="/delete-abbr/{{r['id']}}" >delete</a>]<br>
+			{% for _id, group in groups.items() %}
+			{{ _id }}:  {{ group.name }} -- {{ group.comment | length }} [<a href="/edit-group/{{ _id }}" >edit</a>] [<a href="/delete-group/{{ _id }}" >delete</a>]<br>
 			{% endfor %}
-			=========================<br>
-			
-			{{ result | safe }}
 			<br>
 			<br>
 			<br>

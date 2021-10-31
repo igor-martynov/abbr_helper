@@ -13,16 +13,16 @@
 				<br>
 				<br>
 				<label for="name">Abbreviation:</label>
-				<input type="text" size="120" id="abbreviation" name="abbreviation" title="name of abbreviation" value="{{ abbr['abbr'] }}" required><br><br>
+				<input type="text" size="120" id="abbreviation" name="abbreviation" title="name of abbreviation" value="{{ abbr.name }}" required><br><br>
 				<label for="name">Description:</label>
-				<input type="text" size="120" id="description" name="description" title="description of abbreviation" value="{{ abbr['descr'] }}" required><br><br>
-				<label for="name">Group id:</label>
-				<input type="text" size="120" id="group_id" name="group_id" title="group id" value="{{ abbr['group_id'] | empty_on_None }}" ><br><br>
+				<input type="text" size="120" id="description" name="description" title="description of abbreviation" value="{{ abbr.descr }}" required><br><br>
+				<label for="name">Group list:</label>
+				<input type="text" size="120" id="group_list" name="group_list" title="group list" value="{{ abbr.group_list | empty_filter }}" ><br><br>
 				<label for="name">Comment:</label>
-				<input type="text" size="120" id="comment" name="comment" title="" value = "{{ abbr['comment'] }}"><br><br>
+				<input type="text" size="120" id="comment" name="comment" title="" value = "{{ abbr.comment }}"><br><br>
 				<br>
 				<br>
-				<label><input type="checkbox" name="disabled" value="disabled"> Disabled </label>
+				<label><input type="checkbox" name="disabled" value="disabled" {% if abbr.disabled %} checked {% endif %}> Disabled </label>
 				<br>
 				<input type="submit" value="Save abbreviation"><br>
 			</form>

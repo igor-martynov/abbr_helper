@@ -9,20 +9,8 @@
 		{% include 'header.jinja2.html' %}
 		<div>
 			<br>
-			Abbreviations database:<br>
-			
 			<br>
-			<br>
-			<br>
-			
-			
-			{% for r in db %}
-			{{ r }} -- [<a href="/edit-abbr/{{r['id']}}" >edit</a>] [<a href="/delete-abbr/{{r['id']}}" >delete</a>]<br>
-			{% endfor %}
-			=========================<br>
-			
-			{{ result | safe }}
-			<br>
+			{{ page_text | safe}}
 			<br>
 			<br>
 			

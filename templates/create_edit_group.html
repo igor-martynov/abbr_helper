@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<meta charset="utf-8">
+		<link rel="stylesheet" href="{{ url_for('static', filename='abbr_helper.css') }} ">
+	</head>
+	
+	<body>
+		{% include 'header.jinja2.html' %}
+		<div>
+			<form class="space_between_scroll" action="" method="post">
+				<br>
+				<br>
+				<label for="name">Group:</label>
+				<input type="text" size="120" id="group" name="group" title="name of group" value="{{ group.name }}" required><br><br>
+				<label for="name">Comment:</label>
+				<input type="text" size="120" id="comment" name="comment" title="" value = "{{ group.comment }}"><br><br>
+				<br>
+				<br>
+				<label><input type="checkbox" name="disabled" value="disabled" {% if group.disabled %} checked {% endif %}> Disabled </label>
+				<br>
+				<input type="submit" value="Save group"><br>
+			</form>
+		</div>
+    
+    </body>
+</html>
