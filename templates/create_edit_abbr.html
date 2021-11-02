@@ -12,13 +12,13 @@
 			<form class="space_between_scroll" action="" method="post">
 				<br>
 				<br>
-				<label for="name">Abbreviation:</label>
+				<label for="abbreviation">Abbreviation:</label>
 				<input type="text" size="120" id="abbreviation" name="abbreviation" title="name of abbreviation" value="{{ abbr.name }}" required><br><br>
-				<label for="name">Description:</label>
+				<label for="description">Description:</label>
 				<input type="text" size="120" id="description" name="description" title="description of abbreviation" value="{{ abbr.descr }}" required><br><br>
-				<label for="name">Group list:</label>
+				<label for="group_list">Group list:</label>
 				<input type="text" size="120" id="group_list" name="group_list" title="group list" value="{{ abbr.group_list | empty_filter }}" ><br><br>
-				<label for="name">Comment:</label>
+				<label for="comment">Comment:</label>
 				<input type="text" size="120" id="comment" name="comment" title="" value = "{{ abbr.comment }}"><br><br>
 				<br>
 				<br>

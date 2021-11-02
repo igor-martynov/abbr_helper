@@ -13,9 +13,9 @@
 				<br>
 				<br>
 				<label for="name">Group:</label>
-				<input type="text" size="120" id="group" name="group" title="name of group" value="{{ group.name }}" required><br><br>
-				<label for="name">Comment:</label>
-				<input type="text" size="120" id="comment" name="comment" title="" value = "{{ group.comment }}"><br><br>
+				<input type="text" size="120" id="name" name="name" title="name of group" value="{{ group.name }}" required><br><br>
+				<label for="comment">Comment:</label>
+				<input type="text" size="220" id="comment" name="comment" title="" value="{{ group.comment }}"><br><br>
 				<br>
 				<br>
 				<label><input type="checkbox" name="disabled" value="disabled" {% if group.disabled %} checked {% endif %}> Disabled </label>

@@ -12,13 +12,10 @@ def empty_filter(ivar):
 
 
 def is_abbr(word):
-	""""""
-	
+	"""return True if word is abbr, False otherwise"""
 	# more then 2 chars in word are uppercase 
 	num_of_uppers = sum(map(str.isupper, word))
 	num_of_lowers = sum(map(str.islower, word))
-	# max_cons_uppers = 
-	
 	if num_of_uppers >= 2 and (num_of_uppers / len(word) >= 0.5):
 		return True
 

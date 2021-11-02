@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# 2021-10-31
+# 2021-11-02
 
-__version__ = "0.8.5"
+__version__ = "0.8.6"
 __author__ = "Igor Martynov (phx.planewalker@gmail.com)"
 
 
@@ -20,8 +20,8 @@ import sys
 import glob
 import traceback
 
-from dataclasses import dataclass, field
-from typing import List
+# from dataclasses import dataclass, field
+# from typing import List
 
 # docx format support
 import docx
@@ -36,366 +36,10 @@ import logging.handlers
 
 # base classes
 from base_classes import *
+from abbr import *
+from group import *
 
 
-
-@dataclass
-class Abbr(object):
-	"""docstring for Abbr"""
-	name: str
-	descr: str
-	comment: str
-	disabled: bool
-	_id: int = -1 # this should be overwritten upon first save
-	group_list: List[int] = field(default_factory = list)
-
-
-	
-@dataclass
-class Group(object):
-	"""docstring for Group"""
-	def __init__(self):
-		super(Group, self).__init__()
-		name: str
-		comment: str
-		disabled: bool
-		_id: int = -1 #
-		
-
-
-class AbbrFactory(BaseFactory):
-	"""docstring for AbbrFactory"""
-	def __init__(self, logger = None):
-		super(AbbrFactory, self).__init__()
-		self._logger = logger
-		pass
-	
-	
-	def create_from_db_row(self, row1, row2):
-		self._logger.debug(f"create_from_db_row: will create new abbr from row1: {row1}, and row2: {row2}")
-		new_obj = Abbr(_id = row1[0], name = row1[1], descr = row1[2], comment = row1[3], disabled = True if row1[4] == 1 else False)
-		for group_id in row2:
-			Abbr.group_list.append(group_id)
-		self._logger.debug(f"create_from_db_row: created abbr: {new_obj}")
-		return new_obj
-	
-	
-	def create(self, _id = None, name = "", descr = "", group_list = [], comment = "", disabled = False):
-		new_abbr = Abbr(_id = _id if _id is not None else -1, name = name, descr = descr, group_list = group_list, comment = comment, disabled = disabled)
-		return new_abbr
-
-
-
-# new
-class AbbrDAO(BaseDAO):
-	"""docstring for AbbrDAO"""
-	def __init__(self, db = None, logger = None, factory = None):
-		super(AbbrDAO, self).__init__(db = db, logger = logger, factory = factory)
-		
-		# self._db_manager = db_manager
-		# self._logger = logger
-		
-		pass
-	
-	
-	def create(self, obj):
-		self._db.execute_db_query("""INSERT INTO abbrs(name, descr, comment, disabled) VALUES(:name, :descr, :comment, :disabled)""", {"name": obj.name, "descr": obj.descr, "comment": obj.comment, "disabled": 1 if obj.disabled else 0})
-		row = self._db.execute_db_query("""SELECT id FROM abbrs WHERE name == :name AND descr == :descr AND comment == :comment""", {"name": obj.name, "descr": obj.descr, "comment": obj.comment})
-		obj._id = row[0]
-		for group_id in obj.group_list:
-			self._db.execute_db_query("""INSERT INTO abbr_group(abbr_id, group_id) VALUES(:abbr_id, :group_id)""", {"abbr_id": obj._id, "group_id": group_id})
-		self.dict[obj._id] = obj
-		self._logger.debug(f"create: created and saved abbr: {obj}")
-	
-	
-	def read(self, _id):
-		self._logger.debug(f"read: will read abbr with id {_id}")
-		row1 = self._db.execute_db_query("""SELECT id, name, descr, comment, disabled FROM abbrs WHERE id == :id""", {"id": _id})
-		row2 = self._db.execute_db_query("""SELECT group_id FROM abbr_group WHERE abbr_id == :abbr_id""", {"abbr_id": _id})
-		new_abbr = self._factory(row1[0], row2)
-		self.dict[new_abbr._id] = new_abbr
-		return new_abbr
-		
-	
-	def update(self, obj):
-		self._logger.debug(f"update: will save abbr {obj}")
-		self._db.execute_db_query("""UPDATE abbrs SET name = :name, descr = :descr, comment = :comment, disabled = :disabled WHERE id = :id""", {"id": abbr._id,
-			"name": obj.name,
-			"descr": obj.descr,
-			"comment": obj.comment,
-			"disabled": 1 if obj.disabled is True else 0})
-		# update groups
-		self._db.execute_db_query("""DELETE FROM abbr_group WHERE abbr_id == :abbr_id""", {"abbr_id": obj._id})
-		for group_id in obj.group_list:
-			self._db.execute_db_query("""INSERT INTO abbr_group(abbr_id, group_id) VALUES(:abbr_id, :group_id)""", {"abbr_id": abbr._id, "group_id": group_id})
-		self._logger.info(f"update: saved abbr as: {obj}")
-	
-	
-	def delete(self, obj):
-		self._logger.debug(f"delete: will delete abbr {obj} and it's interconnects")
-		self._db.execute_db_query("""DELETE FROM abbrs where id == :abbr_id""", {"abbr_id": obj._id})
-		self._db.execute_db_query("""DELETE FROM abbr_group where abbr_id == :abbr_id""", {"abbr_id": obj._id})
-		self._logger.info(f"delete: deleted abbr {obj}")
-	
-	
-	def load_all(self):
-		self._logger.debug("load_all: will load all")
-		self.dict = {}
-		row = self._db.execute_db_query("""SELECT id FROM abbrs""")
-		if len(row) == 0:
-			self._logger.info("load_all: DB seems to be empty?..")
-			return
-		id_list = row
-		self._logger.debug(f"load_all: got initial list of IDs: {id_list}, row is: {row}")
-		for i in id_list:
-			self.dict[i[0]] = self.read(i[0])
-		self._logger.debug(f"load_all: finally loaded these abbrs: {self.dict}")
-	
-
-
-class AbbrManager(BaseManager):
-	"""NEW AbbrManager
-	
-	responsibility:
-	load all abbrs
-	get abbr by name
-	CRUD abbr
-	
-	"""
-	def __init__(self, db = None, logger = None):
-		super(AbbrManager, self).__init__(db = db, logger = logger)
-		
-		# self.abbr_list = []
-		# self.abbr_dict = {}
-		self.dict = {}
-		# self._db_manager = db_manager
-		# self._logger = logger
-		self._abbr_factory = None
-		self._abbrDAO = None
-		
-		self.init_all()
-		pass
-	
-	
-	def init_all(self):
-		# abbr_factory
-		self._abbr_factory = AbbrFactory(logger = self._logger.getChild("AbbrFactory"))
-		# abbrDAO
-		self._abbrDAO = AbbrDAO(db = self._db, logger = self._logger.getChild("AbbrDAO"), factory = self._abbr_factory.create_from_db_row)
-		self._logger.debug("init_all: complete")
-	
-	
-	def _get_ids_by_name(self, _name):
-		"""_get_ids_by_name
-		
-		arguments: _name - name of abbt as a str, i.e. "CPU"
-		returns: list of IDs """
-		id_list = []
-		row = self._db.execute_db_query("""SELECT id FROM abbrs WHERE name == :name""", {"name": _name})
-		self._logger.debug(f"_get_ids_by_name: got line from DB: {row}")
-		if len(row) == 0:
-			return id_list
-		for l in row[0]:
-			id_list.append(l)
-		return id_list
-	
-	
-	def get_abbrs_by_name(self, _name):
-		"""
-		arguments:
-		returns: list of abbrs"""
-		self._logger.debug(f"get_abbrs_by_name: will search for abbr {_name}")
-		result = []
-		id_list = self._get_ids_by_name(_name)
-		for i in id_list:
-			try:
-				result.append(self.dict[i])
-			except KeyError as e:
-				self._logger.error(f"get_abbrs_by_name: could not find abbr with id {i}")
-		self._logger.debug(f"get_abbrs_by_name: result is: {result}")
-		return result
-	
-	
-	def load_all(self):
-		self._abbrDAO.load_all()
-		self.dict = self._abbrDAO.dict
-		self._logger.debug(f"load_all: complete, loaded {len(self.dict)} abbrs")
-	
-	
-	def get_abbr_by_id(self, _id):
-		"""
-		arguments: _id: int
-		returns: object of abbr"""
-		try:
-			result = self.dict[_id]
-			return result
-		except KeyError as e:
-			self._logger.debug(f"get_abbr_by_id: abbr with id {_id} does not exist!")
-			return None
-	
-	
-	def already_exist(self, name, desc):
-		candidates = self.get_abbrs_by_name(name)
-		for c in candidates:
-			if c.descr == descr:
-				return True
-		return False
-	
-	
-	def create_abbr(self, name = None, group_list = [], descr = None, comment = None, disabled = False):
-		if name is None:
-			self._logger.error("create_abbr: name is None, so can't create new abbr")
-			return
-		if self.already_exist(name, descr):
-			self._logger.debug(f"create_abbr: abbr {name} - {descr} already exist, will not create")
-			return None
-		new_abbr = self._abbr_factory.create(name = name, descr = descr, group_list = group_list, comment = comment, disabled = disabled)
-		self._abbrDAO.create(new_abbr)
-		self._logger.debug(f"create_abbr: created abbr {new_abbr}")
-		return new_abbr
-	
-	
-	def delete_abbr(self, abbr):
-		abbr_id = abbr._id
-		self._abbrDAO.delete(abbr)
-		del(self.dict[abbr._id])
-		# del(abbr)
-		self._logger.info(f"delete_abbr: abbr with id {abbr_id} deleted both from dict and DB")
-	
-	
-
-# new
-class GroupFactory(BaseFactory):
-	"""docstring for GroupFactory"""
-	def __init__(self, logger = None):
-		super(GroupFactory, self).__init__()
-		self._logger = logger
-	
-	
-	def create_from_db_row(self, row):
-		"""create new group from db row
-		row is: (id, name, comment, disabled)"""
-		new_obj = Group(name = row[1], comment = row[2], disabled = True if row[3] == 1 else False, _id = roq[0])
-		return new_obj
-	
-	
-	def create(self, _id = None, name = "", comment = "", disabled = False):
-		new_obj = Group(_id =_id, name = name, comment = comment, disabled = disabled)
-		return new_obj
-
-	
-	
-# new
-class GroupDAO(BaseDAO):
-	"""docstring for GroupDAO"""
-	def __init__(self, db = None, logger = None, factory = None):
-		super(GroupDAO, self).__init__(db = db, logger = logger, factory = factory)
-		
-		pass
-	
-	
-	def create(self, obj):
-		self._db.execute_db_query("""INSERT INTO groups(name, comment, disabled) VALUES(:name, :comment, :disabled)""", {"name":obj.name, "comment": obj.comment, "disabled": 1 if obj.disabled else 0})
-		row = self._db.execute_db_query("""SELECT id FROM groups WHERE name == :name""", {"name": obj.name})
-		self._logger.debug(f"create: created record for object {obj}, will set id to {row[0]}")
-		obj._id = row[0]
-		self.dict[obj._id] = obj
-		self._logger.debug(f"create: created and saved group: {obj}")
-	
-	
-	def read(self, _id):
-		row = self._db.execute_db_query("""SELECT id, name, comment, disabled FROM groups WHERE id == :_id""", {"_id": _id})
-		new_obj = self.factory(row)
-		self.dict[_id] = new_obj
-		return new_obj
-	
-	
-	def update(self, obj):
-		"""will update group, but not it's interconnects"""
-		self._logger.debug(f"""update: will save group {obj}""")
-		self._db.execute_db_query("""UPDATE groups SET name = :name,
-			comment = :comment,
-			disabled = :disabled WHERE id == :_id""", {"_id": obj._id, "name": obj.name, "comment": obj.comment, "disabled": 1 if obj.disabled else 0})
-		self._logger.debug(f"update: saved group {obj}")
-	
-	
-	def delete(self, obj):
-		"""will delete both group AND all its interconnects"""
-		self._logger.debug(f"delete: will delete group {obj} and it's interconnects")
-		# group
-		self._db.execute_db_query("""DELETE FROM groups WHERE id == :_id""", {"_id": obj._id})
-		# abbr - group - those intercoencts shoud be already deleted on upper level
-		self._db.execute_db_query("""DELETE FROM abbr_group WHERE group_id == :group_id""", {"group_id": obj._id})
-		self._logger.debug(f"delete: deleted group {obj}")
-		
-	
-	
-	def load_all(self):
-		self.dict = {}
-		id_list = self._db.execute_db_query("""SELECT id FROM groups""")
-		if len(id_list) == 0:
-			self._logger.debug("load_all: DB seems to be empty?..")
-			return
-		self._logger.debug(f"load_all: got initial list of IDs: {id_list}")
-		for i in id_list:
-			self.dict[i[0]] = self.read(i[0])
-		self._logger.debug(f"load_all: finally loaded these abbrs: {self.dict}")
-
-
-
-# new
-class GroupManager(BaseManager):
-	"""docstring for GroupManager"""
-	def __init__(self, db = None, logger = None):
-		super(GroupManager, self).__init__(db = db, logger = logger)
-		self._group_factory = None
-		self._groupDAO = None
-		self.init_all()
-		pass
-	
-	
-	def init_all(self):
-		# group_factory
-		self._group_factory = GroupFactory(logger = self._logger.getChild("GroupFactory"))
-		# groupDAO
-		self._groupDAO = GroupDAO(db = self._db, logger = self._logger.getChild("GroupDAO"), factory = self._group_factory.create_from_db_row)
-		self._logger.debug("init_all: complete")
-		
-	
-	def load_all(self):
-		self._logger.debug("load_all: will load all")
-		self._groupDAO.load_all()
-		self.dict = self._groupDAO.dict
-		self._logger.debug(f"load_all: complete, loaded {len(self.dict)} groups")
-	
-	
-	def get_group_by_id(self, _id):
-		try:
-			return self.dict[_id]
-		except KeyError as e:
-			self._logger.error(f"get_group_by_id: group with id {_id} does not exist")
-			return None
-	
-	
-	def get_name_by_id(self, _id):
-		result = self.get_group_by_id(_id)
-		if result is None:
-			return None
-		return result.name
-		
-	
-	def get_id_by_name(self, name):
-		result = None
-		for k, v in self.dict.items():
-			if v.name == name:
-				return k
-	
-	
-	def get_id_list_by_name_list(self, name_list):
-		result = []
-		for n in name_list:
-			result.append(self.get_id_by_name(n))
-		return result
 
 
 
@@ -933,6 +577,8 @@ class AbbrHelperWebApp(object):
 		
 	
 	def run_web_interface(self):
+		self._logger.info(f"==== STARTING AbbrHelper v{__version__} ====")
+		
 		self.web_app = Flask(__name__)
 		self.web_app.secret_key = "qwxnmkqempemjabefwbdirbvdfcwkh"
 		self.web_app.config["UPLOAD_FOLDER"] = self.UPLOAD_DIR
@@ -1042,9 +688,11 @@ class AbbrHelperWebApp(object):
 					abbr.descr = request.form["description"]
 					abbr.comment = request.form["comment"]
 					group_name_list = request.form["group_list"]
-					group_id_list = self.main_abbr.group_manager.get_id_list_by_name_list(group_name_list.replace(", ", ",").split(","))
-					self._logger.debug(f"edit_abbr: got list of group names: {group_name_list}, list of ids of groups: {group_id_list}")
-					abbr.group_list = group_id_list
+					# group_id_list = self.main_app.group_manager.get_id_list_by_name_list(group_name_list.replace(", ", ",").split(","))
+					# self._logger.debug(f"edit_abbr: got list of group names: {group_name_list}, list of ids of groups: {group_id_list}")
+					# abbr.group_list = group_id_list
+					groups_str = request.form["group_list"]
+					# abbr.groups = self.main_app.groups_from_str(groups_str)
 					abbr.disabled = True if request.form.get("disabled") is not None else False
 					# abbr["group_id"] = None if (request.form["group_id"] == "None" or request.form["group_id"] == "") else int(request.form["group_id"])
 					self.main_app.abbr_manager.save(abbr)
@@ -1083,11 +731,28 @@ class AbbrHelperWebApp(object):
 			if request.method == "GET":
 				return render_template("create_edit_group.html", group = found_group)
 			if request.method == "POST":
-				
-				# 
+				name = request.form["name"]
+				comment = request.form["comment"]
+				disabled = True if request.form.get("disabled") is not None else False
 				
 				return render_template("create_edit_group.html", group = found_group)
 			pass
+		
+		@self.web_app.route("/create-group", methods = ["GET", "POST"])
+		def create_group():
+			if request.method == "GET":
+				return render_template("create_edit_group.html", group = None)
+			if request.method == "POST":
+				self._logger.debug("create_group: got POST, will create group according to form")
+				name = request.form["name"]
+				comment = request.form["comment"]
+				disabled = True if request.form.get("disabled") is not None else False
+				self._logger.debug(f"create_group: got from form: name: {name}, comment: {comment}, disabled: {disabled}")
+				new_obj = self.main_app.group_manager.create(name = name, comment = comment, disabled = disabled)
+				
+				return redirect(f"/edit-group/{new_obj._id}")
+			pass
+		
 		
 				
 		# custom Jinja filters
