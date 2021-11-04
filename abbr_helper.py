@@ -38,7 +38,7 @@ import logging.handlers
 from base_classes import *
 from abbr import *
 from group import *
-
+from abbr_finder import *
 
 
 
@@ -71,239 +71,7 @@ class DBManager(BaseManager):
 			result_list.append(str(row))
 		self._logger.debug(f"abbr_db_as_list: will return list of db: {result_list}")
 		return result_list
-		
 
-
-class AbbrManager_old(object):
-	"""Manage abbreviations itself - create abbrs, create groups, save, edit, etc"""
-	
-	
-	def __init__(self, db_file = "", logger = None):
-		super(AbbrManager_old, self).__init__()
-		
-		self.db = None
-		self.db = DBQueryExecutor(db_file = db_file)
-		
-		self._logger = logger
-		pass
-	
-	
-	
-	def get_abbrs_by_name(self, abbr_name):
-		"""find all descriptions of one abbr
-		
-		arguments: name of the abbreviation
-		returns: list of descriptions if abbr exist, None otherwise
-		"""
-		self._logger.debug("get_abbrs_by_name: got input: " + str(abbr_name))
-		abbr_rows = self.db.execute_db_query("""SELECT descr FROM abbrs WHERE name == :abbr_name and disabled == 0""", {"abbr_name": abbr_name})
-		naa_row = self.db.execute_db_query("""SELECT id FROM not_an_abbr WHERE name == :abbr_name""", {"abbr_name": abbr_name})
-		if len(naa_row) != 0:
-			self._logger.debug("get_abbrs_by_name: detected exception with id(s): " + str(naa_row) + ". will return None")
-			return None
-		result = []
-		self._logger.debug("get_abbrs_by_name: got raw row: " + str(abbr_rows))
-		for a in abbr_rows:
-			result.append(a[0])
-		self._logger.debug("get_abbrs_by_name: will return descriptions: " + str(result))
-		return result
-	
-	
-	# def save_abbr(self, abbr):
-	# 	"""
-	# 	arguments: abbr - dict of abbr
-	# 	"""
-	# 	self._logger.debug("save_abbr: will save abbr " + str(abbr))
-	# 	self.db.execute_db_query("""UPDATE abbrs SET name = :name, descr = :descr, group_id = :group_id, comment = :comment, disabled = :disabled WHERE id = :id""", {"id": abbr["id"],
-	# 		"name": abbr["abbr"],
-	# 		"descr": abbr["descr"],
-	# 		"group_id": abbr["group_id"],
-	# 		"comment": abbr["comment"],
-	# 		"disabled": 1 if abbr["disabled"] is True else 0})
-	# 	self._logger.info("save_abbr: saved abbr as: " + str(abbr))
-	
-	
-	def delete_abbr_by_id(self, abbr_id):
-		self.db.execute_db_query("""DELETE FROM abbrs WHERE id = :id""", {"id": abbr_id})
-		self._logger.info("delete_abbr_by_id: deleted abbr with id " + str(abbr_id))
-		
-	
-	def get_group_id_by_name(self, group_name):
-		if group_name == None or group_name == "":
-			return None
-		group_id_row = self.db.execute_db_query("""SELECT id FROM groups WHERE name = :group_name""", {"group_name": group_name})
-		if len(group_id_row) == 0:
-			self._logger.debug("get_group_id_by_name: not found group with name: " + str(group_name))
-			return None
-		else:
-			self._logger.debug("get_group_id_by_name: found group_ids: " + str(group_id_row) + ", will return: " + str(group_id_row[0]))
-			return group_id_row[0]
-	
-	
-	def get_group_name_by_id(self, group_id):
-		group_name_row = self.db.execute_db_query("""SELECT name FROM groups WHERE id = :group_id""", {"group_id": group_id})
-		if len(group_name_row) == 0:
-			self._logger.debug("get_group_name_by_id: not found group with id: " + str(group_id))
-			return None
-		else:
-			self._logger.debug("get_group_name_by_id: found group_names: " + str(group_name_row) + ", will return: " + str(group_name_row[0]))
-			return group_name_row[0]
-	
-	
-	# def delete_group(self, group_name):
-	# 	self.db.execute_db_query("""DELETE FROM groups WHERE name = :group_name""", {"group_name": group_name})
-	# 	self._logger.info("delete_group: deleted all groups with name: " + str(group_name))
-	
-	
-	# def edit_group(self, group_name):
-		
-	# 	pass
-		
-		
-	# def create_group(self, group_name, comment = "", disabled = False):
-	# 	self.db.execute_db_query("""INSERT INTO groups(name, comment, disabled) VALUES(:group_name, :comment, :disabled)""", {"group_name": group_name, "comment": comment, "disabled": 1 if disabled else 0})
-	# 	self._logger.info("create_group: group " + str(group_name) + " created")	
-	
-	
-	# def disable_abbr(self, abbr_id):
-	# 	try:
-	# 		self.db.execute_db_query("""UPDATE abbrs SET disabled = 1 WHERE id = :abbr_id""", {"abbr_id": abbr_id})
-	# 		self._logger.info("disable_abbr: group disabled: " + str(abbr_id))
-	# 	except Exception as e:
-	# 		print("ERROR " + str(e))
-	
-	
-	# def enable_abbr(self, abbr_id):
-	# 	try:
-	# 		self.db.execute_db_query("""UPDATE abbrs SET disabled = 0 WHERE id = :abbr_id""", {"abbr_id": abbr_id})
-	# 		self._logger.info("enable_abbr: group enabled: " + str(abbr_id))
-	# 	except Exception as e:
-	# 		print("ERROR " + str(e))
-
-	
-	# def disable_group(self, group_id):
-	# 	try:
-	# 		self.db.execute_db_query("""UPDATE abbrs SET disabled = 1 WHERE id = :abbr_id""", {"abbr_id": abbr_id})
-	# 	except Exception as e:
-	# 		print("ERROR " + str(e))
-	
-	
-	# def enable_group(self, group_id):
-	# 	try:
-	# 		self.db.execute_db_query("""UPDATE abbrs SET disabled = 0 WHERE id = :abbr_id""", {"abbr_id": abbr_id})
-	# 	except Exception as e:
-	# 		print("ERROR " + str(e))
-	
-	
-	# def abbr_already_exist(self, abbr, descr):
-	# 	"""returns True if abbr already exist, otherwise False"""
-	# 	row = self.db.execute_db_query("""SELECT id FROM abbrs WHERE name = :name AND descr = :descr""", {"name": abbr, "descr": descr})
-	# 	if len(row) != 0:
-	# 		self._logger.debug("if_abbr_exist: abbr already exist: " + str(abbr) + " - " + str(descr))
-	# 		return True
-	# 	else:
-	# 		return False
-		
-		
-	# def create_abbr(self, abbr_name, descr = "", group_name = "", comment = "", disabled = False):
-	# 	""""""
-	# 	# firstly, check if abbreviantion already exist
-	# 	if self.abbr_already_exist(abbr_name, descr):
-	# 		self._logger.debug("create_abbr: will not create abbr " + str(abbr_name) + " - it already exist")
-	# 		return None
-		
-	# 	# check if group already exist
-	# 	target_group_id = self.get_group_id_by_name(group_name)
-	# 	if target_group_id is None and group_name is not None:
-	# 		# создаем группу
-	# 		self._logger.debug("")
-	# 		self.create_group(group_name)
-	# 		target_group_id = self.get_group_id_by_name(group_name)
-		
-	# 	# creating abbr
-	# 	self.db.execute_db_query("""INSERT INTO abbrs(name, descr, group_id, comment, disabled) VALUES(:name, :descr, :group_id, :comment, :disabled)""", {"name": abbr_name, "descr": descr, "group_id": target_group_id, "comment": comment, "disabled": 1 if disabled else 0})
-	# 	self._logger.info("create_abbr: created abbr: " + str(abbr_name) + ", descr: " + str(descr) + ", comment: " + str(comment) + ", disabled: " + str(disabled))
-		
-	
-	# def import_from_dict(self, abbr_db_dict):
-	# 	self._logger.info("import_from_dict: starting import from dict...")
-	# 	for k in abbr_db_dict.keys():
-	# 		for descr in abbr_db_dict[k]:
-	# 			self._logger.debug("import_from_dict: importing key " + str(k) + ", value " + str(descr))
-	# 			self.create_abbr(k, descr = descr, comment = "added from import")
-	# 	self._logger.debug("import_from_dict: import complete.")
-	
-	
-	def is_not_an_abbr(self, not_an_abbr):
-		row = self.db.execute_db_query("""SELECT id FROM not_an_abbr WHERE name = :not_an_abbr""", {"not_an_abbr": not_an_abbr})
-		if len(row) == 0:
-			return False
-		else:
-			return True
-	
-	
-	def create_not_an_abbr(self, not_an_abbr, comment = "", disabled = False):
-		if not self.is_not_an_abbr(not_an_abbr):
-			# create if not exist
-			self.db.execute_db_query("""INSERT INTO not_an_abbr(name, comment, disabled) VALUES(:name, :comment, :disabled)""", {"name": not_an_abbr, "comment": comment, "disabled": 1 if disabled else 0})
-		pass
-
-	
-	def print_db(self):
-		result = []
-		row = self.db.execute_db_query("""SELECT * FROM abbrs""")
-		for r in row:
-			result.append(str(r) + "\n")
-		
-		return result
-	
-	
-	def abbr_line_to_dict(self, line):
-		abbr = {}
-		abbr["id"] = line[0]
-		abbr["abbr"] = line[1]
-		abbr["descr"] = line[2]
-		abbr["group_id"] = line[3]
-		abbr["group_name"] = line[3]
-		abbr["comment"] = line[4]
-		abbr["disabled"] = True if line[5] == 1 else False
-		return abbr
-	
-	
-	# @property
-	# def abbr_db_as_list(self):
-	# 	"""export all abbrs from DB as list of dicts
-	# 	arguments:
-	# 	returns: list"""
-	# 	rows = self.db.execute_db_query("""SELECT * FROM abbrs""")
-	# 	result_list = []
-	# 	for row in rows:
-	# 		# abbr = {}
-	# 		# abbr["id"] = row[0]
-	# 		# abbr["abbr"] = row[1]
-	# 		# abbr["descr"] = row[2]
-	# 		# abbr["group_id"] = row[3]
-	# 		# abbr["group_name"] = row[3]
-	# 		# abbr["comment"] = row[4]
-	# 		# abbr["disabled"] = row[5]
-	# 		abbr = self.abbr_line_to_dict(row)
-	# 		result_list.append(abbr)
-	# 	return result_list
-	
-	
-	# def get_abbr_by_id(self, abbr_id):
-	# 	"""
-		
-	# 	arguments: abbr_id: int
-	# 	returns: dict of abbr"""
-	# 	row = self.db.execute_db_query("""SELECT * FROM abbrs WHERE id = :id""", {"id": abbr_id})
-	# 	if len(row) == 0 or len(row[0]) == 0:
-	# 		self._logger.error("get_abbr_by_id: abbr with id " + str(abbr_id) + " not found")
-	# 		return None
-	# 	abbr = self.abbr_line_to_dict(row[0])
-	# 	self._logger.debug("get_abbr_by_id: returning " + str(abbr))
-	# 	return abbr
-	
 
 
 class AbbrHelperApp(object):
@@ -327,12 +95,9 @@ class AbbrHelperApp(object):
 		self.abbr_manager = None
 		self.group_manager = None
 		self.not_an_abbr_manager = None
+		self.abbr_finder = None
 		
 		self._logger = logger
-		# self.abbr_manager = AbbrManager(db_file = os.path.join(os.path.abspath(os.path.dirname(__file__)), "abbr_helper.db"), logger = self._logger.getChild("AbbrDB"))
-		# self.abbr_manager = AbbrManager(db_manager = self._db_manager, logger = self._logger.getChild("AbbrDB"))
-	
-		self._logger.debug("AbbrHelper: inited")
 		self.report = ""
 		
 		self.init_all()
@@ -349,6 +114,10 @@ class AbbrHelperApp(object):
 		# not_an_abbr_manager
 		
 		
+		# abbr_finder
+		self.abbr_finder = AbbrFinder(abbr_dict = self.abbr_manager.dict, not_an_abbr_dict = {}, logger = self._logger.getChild("AbbrFinder"))
+		
+		
 		# db_manager
 		self.db_manager = DBManager(db = self._db, logger = self._logger.getChild("DBManager"))
 		self._logger.debug("init_all: complete")
@@ -360,7 +129,9 @@ class AbbrHelperApp(object):
 		self.abbr_manager.load_all()
 		# group
 		self.group_manager.load_all()
+		
 		# notanabbr
+		
 		self._logger.info("load_all: all loaded")
 	
 	
@@ -391,66 +162,66 @@ class AbbrHelperApp(object):
 				self.db[abbr_name].extend(abbr_decoding)
 	
 	
-	def format_abbr(self, abbr, descr_list):
-		self._logger.debug("format_abbr: got input: abbr: " + str(abbr) + ", descr_list: " + str(descr_list))
-		if abbr == "" or abbr is None or len(abbr) == 0:
-			return "\n"
+	# def format_abbr(self, abbr, descr_list):
+	# 	self._logger.debug("format_abbr: got input: abbr: " + str(abbr) + ", descr_list: " + str(descr_list))
+	# 	if abbr == "" or abbr is None or len(abbr) == 0:
+	# 		return "\n"
 		
-		try:
-			result = ""
-			for d in descr_list:
-				result += abbr + " - " + d + "\n"
-			return result
+	# 	try:
+	# 		result = ""
+	# 		for d in descr_list:
+	# 			result += abbr + " - " + d + "\n"
+	# 		return result
 			
-		except Exception as e:
-			self._logger.error("ERROR: format_abbr: " + str(e) + " while parsing abbr: " + str(abbr) + ", descriptions: " + str(descr_list))
-			return ""
+	# 	except Exception as e:
+	# 		self._logger.error("ERROR: format_abbr: " + str(e) + " while parsing abbr: " + str(abbr) + ", descriptions: " + str(descr_list))
+	# 		return ""
 	
 	
-	def normalize_input_line(self, line):
-		for c in self.WORD_DELIMETERS:
-			line = line.replace(c, " ")
-		return line
+	# def normalize_input_line(self, line):
+	# 	for c in self.WORD_DELIMETERS:
+	# 		line = line.replace(c, " ")
+	# 	return line
 	
 	
-	def load_input_file(self, path_to_file):
-		if not os.path.isfile(path_to_file):
-			print("E this is not a file - " + str(path_to_file))
-			return False
+	# def load_input_file(self, path_to_file):
+	# 	if not os.path.isfile(path_to_file):
+	# 		print("E this is not a file - " + str(path_to_file))
+	# 		return False
 			
-		if path_to_file.endswith(".txt") or path_to_file.endswith(".TXT"):
-			self._logger.info("load_input_file: detected TXT file")
-			self.load_input_txt_file(path_to_file)
-		elif path_to_file.endswith(".docx") or path_to_file.endswith(".DOCX"):
-			self._logger.info("load_input_file: detected DOCX file")
-			self.load_input_docx_file(path_to_file)
-		else:
-			self._logger.error("load_input_file: unsupported file format???")
+	# 	if path_to_file.endswith(".txt") or path_to_file.endswith(".TXT"):
+	# 		self._logger.info("load_input_file: detected TXT file")
+	# 		self.load_input_txt_file(path_to_file)
+	# 	elif path_to_file.endswith(".docx") or path_to_file.endswith(".DOCX"):
+	# 		self._logger.info("load_input_file: detected DOCX file")
+	# 		self.load_input_docx_file(path_to_file)
+	# 	else:
+	# 		self._logger.error("load_input_file: unsupported file format???")
 		
 	
-	def load_input_txt_file(self, path_to_file):
-		self.input_word_list = []
-		self.input_text = ""
-		with open(path_to_file, "r") as f:
-			input_lines = f.readlines()
-			for iline in input_lines:
-				self.input_text += iline
-				iline = self.normalize_input_line(iline)
-				self.input_word_list.extend(iline.split())
+	# def load_input_txt_file(self, path_to_file):
+	# 	self.input_word_list = []
+	# 	self.input_text = ""
+	# 	with open(path_to_file, "r") as f:
+	# 		input_lines = f.readlines()
+	# 		for iline in input_lines:
+	# 			self.input_text += iline
+	# 			iline = self.normalize_input_line(iline)
+	# 			self.input_word_list.extend(iline.split())
 	
 	
-	def load_input_docx_file(self, path_to_file):
-		self.input_word_list = []
-		self.input_text = ""
-		try:
-			docfile = docx.Document(path_to_file)
-			for par in docfile.paragraphs:
-				self.input_text += par.text + "\n"
-		except Exception as e:
-			print("E error while reading DOCX file: " + str(e))
-		self.input_word_list = self.normalize_input_text().split()
-		# print("D got text " + str(self.input_text))
-		print("D len of input_text: " + str(len(self.input_text)))
+	# def load_input_docx_file(self, path_to_file):
+	# 	self.input_word_list = []
+	# 	self.input_text = ""
+	# 	try:
+	# 		docfile = docx.Document(path_to_file)
+	# 		for par in docfile.paragraphs:
+	# 			self.input_text += par.text + "\n"
+	# 	except Exception as e:
+	# 		print("E error while reading DOCX file: " + str(e))
+	# 	self.input_word_list = self.normalize_input_text().split()
+	# 	# print("D got text " + str(self.input_text))
+	# 	print("D len of input_text: " + str(len(self.input_text)))
 	
 	
 	def validate_db_line(self, line):
@@ -474,18 +245,18 @@ class AbbrHelperApp(object):
 		return result
 		
 	
-	def check_db(self):
-		""""""
-		valid_lines = []
-		with open(self.DB_FILE, "r") as f:
-			lines = f.readlines()
-			for l in lines:
-				if l not in valid_lines:
-					valid_lines.append(l)
+	# def check_db(self):
+	# 	""""""
+	# 	valid_lines = []
+	# 	with open(self.DB_FILE, "r") as f:
+	# 		lines = f.readlines()
+	# 		for l in lines:
+	# 			if l not in valid_lines:
+	# 				valid_lines.append(l)
 		
 		
-		with open(self.DB_FILE, "w") as f:
-			f.writelines(valid_lines)
+	# 	with open(self.DB_FILE, "w") as f:
+	# 		f.writelines(valid_lines)
 	
 	
 	# new version
@@ -611,9 +382,9 @@ class AbbrHelperWebApp(object):
 					self._logger.info("upload_file: uploaded file " + str(os.path.join(self.web_app.config["UPLOAD_FOLDER"], filename)))
 					
 					# read input file
-					self.main_app.load_input_file(os.path.join(self.web_app.config["UPLOAD_FOLDER"], filename))
-					self.main_app.find_all_abbrs()
-					report = self.main_app.gen_report()
+					self.main_app.abbr_finder.find_abbrs_in_file(os.path.join(self.web_app.config["UPLOAD_FOLDER"], filename))
+					# self.main_app.abbr_finder.find_all_abbrs()
+					report = self.main_app.abbr_finder.gen_report()
 					
 					os.remove(os.path.join(self.web_app.config["UPLOAD_FOLDER"], filename))
 				
@@ -678,7 +449,7 @@ class AbbrHelperWebApp(object):
 		def edit_abbr(abbr_id):
 			abbr = self.main_app.abbr_manager.get_abbr_by_id(abbr_id)
 			if abbr is None:
-				return render_template("blanc.html", page_text = f"<br>ERRROR: abbr with id {abbr_id} not found!")
+				return render_template("blank.html", page_text = f"<br>ERRROR: abbr with id {abbr_id} not found!")
 			if request.method == "GET":
 				return render_template("create_edit_abbr.html", abbr = abbr)
 			if request.method == "POST":
@@ -712,13 +483,13 @@ class AbbrHelperWebApp(object):
 				self.main_app.abbr_manager.delete_abbr(found_abbr)
 				return render_template("main_page.html")
 		
-		
+		# ok
 		@self.web_app.route("/show-all-abbrs", methods = ["GET"])
 		def show_all_abbrs():
 			self._logger.debug(f"show_all_abbrs: will display self.main_app.abbr_manager.dict: {self.main_app.abbr_manager.dict}")
 			return render_template("show_all_abbrs.html", abbrs = self.main_app.abbr_manager.dict)
 	
-		
+		# ok
 		@self.web_app.route("/show-all-groups", methods = ["GET"])
 		def show_all_groups():
 			self._logger.debug(f"show_all_groups: will display self.main_app.group_manager.dict")
@@ -728,15 +499,16 @@ class AbbrHelperWebApp(object):
 		@self.web_app.route("/edit-group/<int:group_id>", methods = ["GET", "POST"])
 		def edit_group(group_id):
 			found_group = self.main_app.group_manager.get_group_by_id(group_id)
+			if found_group is None:
+				return render_template("blank.html", page_text = f"<br>ERRROR: group with id {group_id} not found!")
 			if request.method == "GET":
 				return render_template("create_edit_group.html", group = found_group)
 			if request.method == "POST":
 				name = request.form["name"]
 				comment = request.form["comment"]
 				disabled = True if request.form.get("disabled") is not None else False
-				
 				return render_template("create_edit_group.html", group = found_group)
-			pass
+		
 		
 		@self.web_app.route("/create-group", methods = ["GET", "POST"])
 		def create_group():
@@ -748,10 +520,20 @@ class AbbrHelperWebApp(object):
 				comment = request.form["comment"]
 				disabled = True if request.form.get("disabled") is not None else False
 				self._logger.debug(f"create_group: got from form: name: {name}, comment: {comment}, disabled: {disabled}")
-				new_obj = self.main_app.group_manager.create(name = name, comment = comment, disabled = disabled)
-				
+				new_obj = self.main_app.group_manager.create(name = name, comment = comment, disabled = disabled)		
 				return redirect(f"/edit-group/{new_obj._id}")
-			pass
+		
+		
+		@self.web_app.route("/delete-group/<int:group_id>", methods = ["GET", "POST"])
+		def delete_group(group_id):
+			found_group = self.main_app.group_manager.get_group_by_id(group_id)
+			if found_group is None:
+				return render_template("blank.html", page_text = f"<br>ERRROR: group with id {group_id} not found!")
+			if request.method == "GET":
+				return render_template("delete_group.html", group = found_group)
+			if request.method == "POST":
+				self.main_app.group_manager.delete(found_group)
+				return render_template("main_page.html")
 		
 		
 				

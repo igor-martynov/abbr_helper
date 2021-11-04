@@ -172,7 +172,14 @@ class GroupManager(BaseManager):
 		new_obj = self._factory.create(name = name, comment = comment, disabled = disabled)
 		self._DAO.create(new_obj)
 		return new_obj
-
+	
+	
+	def delete(self, obj):
+		obj_id = obj._id
+		self._DAO.delete(obj)
+		del(self.dict[obj._id])
+		self._logger.info(f"delete: obj with id {obj_id} deleted both from dict and DB")
+		pass
 
 
 

@@ -5,6 +5,8 @@ from dataclasses import dataclass, field
 from typing import List
 
 from base_classes import *
+from group import Group
+
 
 
 @dataclass
@@ -16,11 +18,19 @@ class Abbr(object):
 	disabled: bool
 	_id: int = -1 # this should be overwritten upon first save
 	group_list: List[int] = field(default_factory = list)
-	
-	
+	groups: List[Group] = field(default_factory = list)
 	
 
-
+	@property
+	def is_disabled(self):
+		"""abbr is disabled if either self.disabled, or one of it's group is disabled"""
+		if self.disabled: return True
+		for g in self.groups:
+			if d.disabled:
+				return True
+		return False
+	
+	
 	
 
 class AbbrFactory(BaseFactory):

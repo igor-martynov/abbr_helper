@@ -14,7 +14,7 @@
 			<br>
 			<br>
 			{% for _id, abbr in abbrs.items() %}
-			{{ _id }}:  {{ abbr.name }} -- {{ abbr.descr }} [<a href="/edit-abbr/{{ _id }}" >edit</a>] [<a href="/delete-abbr/{{ _id }}" >delete</a>]<br>
+			id{{ _id }}:  {{ abbr.name }} -- {{ abbr.descr }} [<a href="/edit-abbr/{{ _id }}" >edit</a>] [<a href="/delete-abbr/{{ _id }}" >delete</a>]<br>
 			{% endfor %}
 			<br>
 			<br>

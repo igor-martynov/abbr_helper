@@ -146,6 +146,8 @@ class BaseManager(object):
 	
 	def delete(self):
 		raise NotImplemented
+		
+		
 	
 	def create(self):
 		raise NotImplemented
