@@ -180,7 +180,9 @@ class GroupManager(BaseManager):
 		del(self.dict[obj._id])
 		self._logger.info(f"delete: obj with id {obj_id} deleted both from dict and DB")
 		pass
-
-
+	
+	
+	def save(self, obj):
+		self._DAO.update(obj)
 
 

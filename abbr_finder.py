@@ -5,23 +5,41 @@ from dataclasses import dataclass, field
 from typing import List
 
 import os
-from base_classes import *
 
+# docx format support
+import docx
+
+from base_classes import *
+from abbr import Abbr
 
 
 class AbbrFinder(object):
 	"""find abbrs in text"""
 	
-	def __init__(self, logger = None, abbr_dict = None, not_an_abbr_dict = None):
+	def __init__(self,
+		logger = None,
+		abbr_manager = None,
+		# group_manager = None,
+		not_an_abbr_dict = {}):
 		super(AbbrFinder, self).__init__()
 		self._logger = logger
 		
-		self.abbr_dict = abbr_dict
+		self.WORD_DELIMETERS = ".,/\\!@?:;-+=\n()\"\'«»*"
+		
+		self.abbr_manager = abbr_manager
+		# self.group_manager = group_manager
 		self.not_an_abbr_dict = not_an_abbr_dict
 		
 		self.input_text = ""
 		self.input_word_list = []
+		
+		self.all_found_abbrs = set()
+		self.found_known_abbrs = set()
 		pass
+	
+	@property
+	def found_unknown_abbrs(self):
+		return self.all_found_abbrs - self.found_known_abbrs
 	
 	
 	def normalize_input_line(self, line):
@@ -30,14 +48,24 @@ class AbbrFinder(object):
 		return line
 	
 	
+	def normalize_input_text(self):
+		result = self.input_text
+		for c in self.WORD_DELIMETERS:
+			result = result.replace(c, " ")
+		return result
+	
+	
 	def format_abbrs(self, abbr_list):
 		self._logger.debug(f"format_abbr: got input: abbr_list: {abbr_list}")
 		if len(abbr_list) == 0:
 			self._logger.error("format_abbrs: got emptu abbr_list")
 			return ""
 		result = ""
-		for a in abbr_list:
-			result += abbr.name + " - " + abbr.descr + "\n"
+		for abbr in abbr_list:
+			if isinstance(abbr, Abbr):
+				result += abbr.name + " - " + abbr.descr + "\n"
+			else:
+				result += abbr + "\n"
 		return result
 	
 	
@@ -89,7 +117,7 @@ class AbbrFinder(object):
 	
 	
 	def is_not_an_abbr(self, not_an_abbr):
-		for naa in self.not_an_abbr:
+		for naa in self.not_an_abbr_dict.values():
 			if naa.name == not_an_abbr and not naa.disabled:
 				return True
 			else:
@@ -97,14 +125,50 @@ class AbbrFinder(object):
 	
 	
 	def find_abbrs_in_input_text(self):
-		# step 1 - find all abbrs in input words
-		all_found_abbrs = set()
+		self._logger.debug(f"find_abbrs_in_input_text: starting step 1")
+		# step 1 - find all abbrs (either known and unknown) in input words
+		self.all_found_abbrs = set()
+		self.found_known_abbrs = set()
 		for w in self.input_word_list:
 			if is_abbr(w):
-				all_found_abbrs.add(w)
-		self._logger.debug(f"find_abbrs_in_input_text: found abbrs: {all_found_abbrs}")
+				self.all_found_abbrs.add(w)
+		self._logger.debug(f"find_abbrs_in_input_text: found abbrs: {self.all_found_abbrs}")
+		self._logger.debug(f"find_abbrs_in_input_text: step 1 complete. starting step 2")
+		
+		# step 2 - known or unknown
+		for a in self.all_found_abbrs:
+			if self.is_not_an_abbr(a):
+				self._logger.debug(f"find_abbrs_in_input_text: word {a} is not_an_abbr, will be ignored")
+				continue
+			found = self.abbr_manager.get_abbrs_by_name(a)
+			if len(found) != 0:
+				self.found_known_abbrs.update(found)
+				self._logger.debug(f"find_abbrs_in_input_text: added found abbrs {found} for word {a}")
+			else:
+				self._logger.debug(f"find_abbrs_in_input_text: word {a} is unknown abbr")
 		
 		pass
 	
 	
+	def gen_report(self):
+		self._logger.debug("gen_report: starting")
+		
+		self._report = ""
+		
+		# known
+		self._report += "\n\nKNOWN: \n"
+		self._report += self.format_abbrs(self.found_known_abbrs)
+		
+		# unknown
+		self._report += "\n\nUNKNOWN: \n"
+		self._report += self.format_abbrs(self.found_unknown_abbrs)
+		
+		self._logger.debug("gen_report: complete")
+		
+		return self._report
+		# raise NotImplemented
 	
+	
+	@property
+	def report(self):
+		return self.gen_report()

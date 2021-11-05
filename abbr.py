@@ -31,6 +31,9 @@ class Abbr(object):
 		return False
 	
 	
+	def __hash__(self):
+		return hash((self.name, self.descr))
+	
 	
 
 class AbbrFactory(BaseFactory):

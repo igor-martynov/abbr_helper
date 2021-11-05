@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# 2021-11-02
+# 2021-11-05
 
-__version__ = "0.8.6"
+__version__ = "0.9.0"
 __author__ = "Igor Martynov (phx.planewalker@gmail.com)"
 
 
@@ -23,8 +23,7 @@ import traceback
 # from dataclasses import dataclass, field
 # from typing import List
 
-# docx format support
-import docx
+
 
 # flask web interface
 from flask import Flask, flash, request, redirect, url_for, Response, render_template
@@ -85,7 +84,7 @@ class AbbrHelperApp(object):
 		self.DB_DIR = "./DBs"
 		self.db = {}
 		self.DB_DIVIDER = ";"
-		self.WORD_DELIMETERS = ".,/\\!@?:;-+=\n()\"\'«»*"
+		# self.WORD_DELIMETERS = ".,/\\!@?:;-+=\n()\"\'«»*"
 		
 		self.input_word_list = []
 		self.input_text = ""
@@ -115,7 +114,7 @@ class AbbrHelperApp(object):
 		
 		
 		# abbr_finder
-		self.abbr_finder = AbbrFinder(abbr_dict = self.abbr_manager.dict, not_an_abbr_dict = {}, logger = self._logger.getChild("AbbrFinder"))
+		self.abbr_finder = AbbrFinder(abbr_manager = self.abbr_manager, not_an_abbr_dict = {}, logger = self._logger.getChild("AbbrFinder"))
 		
 		
 		# db_manager
@@ -151,7 +150,7 @@ class AbbrHelperApp(object):
 			all_lines = f.readlines()
 			for line in all_lines:
 				if not self.validate_db_line(line):
-					print("ERROR invalid DB line " + str(line))
+					# print("ERROR invalid DB line " + str(line))
 					continue
 				
 				line_fields = line.replace("\n", "").split(self.DB_DIVIDER)
@@ -362,29 +361,32 @@ class AbbrHelperWebApp(object):
 				return render_template("main_page.html", app_version = __version__)
 		
 		
-		@self.web_app.route("/upload-file", methods = ["GET", "POST"])
-		def upload_file():
+		@self.web_app.route("/upload-input-file", methods = ["GET", "POST"])
+		def upload_input_file():
 			if request.method == "GET":
 				return render_template("upload_file.html")
 				
 			if request.method == "POST":
 				if "file" not in request.files:
-					self._logger.error("upload_file: no file part found in request!")
+					self._logger.error("upload_input_file: no file part found in request!")
 					return redirect(request.url)
 				f = request.files["file"]
 				if f.filename == "":
-					self._logger.error("upload_file: no file selected in form")
+					self._logger.error("upload_input_file: no file selected in form")
 					return redirect(request.url)
 				if f:
 					# try\except here
-					filename = secure_filename(f.filename)
-					f.save(os.path.join(self.web_app.config["UPLOAD_FOLDER"], filename)) # currently only with temp file
-					self._logger.info("upload_file: uploaded file " + str(os.path.join(self.web_app.config["UPLOAD_FOLDER"], filename)))
-					
+					try:
+						filename = secure_filename(f.filename)
+						f.save(os.path.join(self.web_app.config["UPLOAD_FOLDER"], filename)) # currently only with temp file
+						self._logger.info("upload_input_file: uploaded file " + str(os.path.join(self.web_app.config["UPLOAD_FOLDER"], filename)))
+					except Exception as e:
+						self._logger.error(f"upload_input_file: could not save uploaded file as {filename}")
 					# read input file
 					self.main_app.abbr_finder.find_abbrs_in_file(os.path.join(self.web_app.config["UPLOAD_FOLDER"], filename))
 					# self.main_app.abbr_finder.find_all_abbrs()
-					report = self.main_app.abbr_finder.gen_report()
+					# report = self.main_app.abbr_finder.gen_report()
+					report = self.main_app.abbr_finder.report
 					
 					os.remove(os.path.join(self.web_app.config["UPLOAD_FOLDER"], filename))
 				
