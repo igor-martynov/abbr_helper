@@ -156,11 +156,11 @@ class AbbrFinder(object):
 		self._report = ""
 		
 		# known
-		self._report += "\n\nKNOWN: \n"
+		self._report += "\n\nKNOWN ABBREVIATIONS: \n"
 		self._report += self.format_abbrs(self.found_known_abbrs)
 		
 		# unknown
-		self._report += "\n\nUNKNOWN: \n"
+		self._report += "\n\n\nUNKNOWN ABBREVIATIONS: \n"
 		self._report += self.format_abbrs(self.found_unknown_abbrs)
 		
 		self._logger.debug("gen_report: complete")

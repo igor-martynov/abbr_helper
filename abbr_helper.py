@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# 2021-11-05
+# 2021-11-07
 
-__version__ = "0.9.0"
+__version__ = "0.9.1"
 __author__ = "Igor Martynov (phx.planewalker@gmail.com)"
 
 
@@ -35,9 +35,11 @@ import logging.handlers
 
 # base classes
 from base_classes import *
+from db import *
 from abbr import *
 from group import *
 from abbr_finder import *
+
 
 
 
@@ -49,27 +51,6 @@ class NotAnAbbrManager(BaseManager):
 		super(NotAnAbbrManager, self).__init__(db = db, logger = logger)
 		pass
 		
-
-
-# new
-class DBManager(BaseManager):
-	"""docstring for DBManager"""
-	def __init__(self, db = None, logger = None):
-		super(DBManager, self).__init__(db = db, logger = logger)
-		pass
-	
-	
-	@property
-	def abbr_db_as_list(self):
-		"""
-		arguments:
-		returns: list"""
-		rows = self._db.execute_db_query("""SELECT * FROM abbrs""")
-		result_list = []
-		for row in rows:
-			result_list.append(str(row))
-		self._logger.debug(f"abbr_db_as_list: will return list of db: {result_list}")
-		return result_list
 
 
 
@@ -133,12 +114,6 @@ class AbbrHelperApp(object):
 		
 		self._logger.info("load_all: all loaded")
 	
-	
-	# def load_db(self):
-	# 	self.db = {}
-	# 	self._logger.debug("will load db...")
-	# 	self.load_db_from_file()
-	# 	self.abbr_manager.import_from_dict(self.db)
 			
 	
 	def load_db_from_file(self, file = None):
@@ -159,68 +134,6 @@ class AbbrHelperApp(object):
 				if abbr_name not in self.db.keys():
 					self.db[abbr_name] = []
 				self.db[abbr_name].extend(abbr_decoding)
-	
-	
-	# def format_abbr(self, abbr, descr_list):
-	# 	self._logger.debug("format_abbr: got input: abbr: " + str(abbr) + ", descr_list: " + str(descr_list))
-	# 	if abbr == "" or abbr is None or len(abbr) == 0:
-	# 		return "\n"
-		
-	# 	try:
-	# 		result = ""
-	# 		for d in descr_list:
-	# 			result += abbr + " - " + d + "\n"
-	# 		return result
-			
-	# 	except Exception as e:
-	# 		self._logger.error("ERROR: format_abbr: " + str(e) + " while parsing abbr: " + str(abbr) + ", descriptions: " + str(descr_list))
-	# 		return ""
-	
-	
-	# def normalize_input_line(self, line):
-	# 	for c in self.WORD_DELIMETERS:
-	# 		line = line.replace(c, " ")
-	# 	return line
-	
-	
-	# def load_input_file(self, path_to_file):
-	# 	if not os.path.isfile(path_to_file):
-	# 		print("E this is not a file - " + str(path_to_file))
-	# 		return False
-			
-	# 	if path_to_file.endswith(".txt") or path_to_file.endswith(".TXT"):
-	# 		self._logger.info("load_input_file: detected TXT file")
-	# 		self.load_input_txt_file(path_to_file)
-	# 	elif path_to_file.endswith(".docx") or path_to_file.endswith(".DOCX"):
-	# 		self._logger.info("load_input_file: detected DOCX file")
-	# 		self.load_input_docx_file(path_to_file)
-	# 	else:
-	# 		self._logger.error("load_input_file: unsupported file format???")
-		
-	
-	# def load_input_txt_file(self, path_to_file):
-	# 	self.input_word_list = []
-	# 	self.input_text = ""
-	# 	with open(path_to_file, "r") as f:
-	# 		input_lines = f.readlines()
-	# 		for iline in input_lines:
-	# 			self.input_text += iline
-	# 			iline = self.normalize_input_line(iline)
-	# 			self.input_word_list.extend(iline.split())
-	
-	
-	# def load_input_docx_file(self, path_to_file):
-	# 	self.input_word_list = []
-	# 	self.input_text = ""
-	# 	try:
-	# 		docfile = docx.Document(path_to_file)
-	# 		for par in docfile.paragraphs:
-	# 			self.input_text += par.text + "\n"
-	# 	except Exception as e:
-	# 		print("E error while reading DOCX file: " + str(e))
-	# 	self.input_word_list = self.normalize_input_text().split()
-	# 	# print("D got text " + str(self.input_text))
-	# 	print("D len of input_text: " + str(len(self.input_text)))
 	
 	
 	def validate_db_line(self, line):
@@ -427,7 +340,7 @@ class AbbrHelperWebApp(object):
 			if request.method == "GET":
 				return render_template("show_db.html", db = self.main_app.db_manager.abbr_db_as_list)
 		
-		
+		# ok
 		@self.web_app.route("/create-abbr", methods = ["GET", "POST"])
 		def create_abbr():
 			if request.method == "GET":
@@ -549,8 +462,7 @@ class AbbrHelperWebApp(object):
 
 
 def print_help():
-	print(f"    {os.path.abspath(__file__)}: Manage abbreviations.")
-	print("    Use --web-app to lauch web interface.")
+	print(f"    {os.path.abspath(__file__)}: Manage abbreviations in web interface..")
 	print("    Use --db-file to specify DB file.")
 
 
@@ -564,11 +476,7 @@ if __name__ == "__main__":
 	
 	
 	
-	if "--web-app" in args:
-		ahwapp = AbbrHelperWebApp(db_file = DB_FILE)
-		ahwapp.run_web_interface()
-		sys.exit(0)
 	
-	# print help and exit
-	print_help()
-	pass
+	ahwapp = AbbrHelperWebApp(db_file = DB_FILE)
+	ahwapp.run_web_interface()
+	sys.exit(0)
