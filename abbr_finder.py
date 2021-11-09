@@ -13,6 +13,7 @@ from base_classes import *
 from abbr import Abbr
 
 
+
 class AbbrFinder(object):
 	"""find abbrs in text"""
 	
@@ -35,7 +36,7 @@ class AbbrFinder(object):
 		
 		self.all_found_abbrs = set()
 		self.found_known_abbrs = set()
-		pass
+	
 	
 	@property
 	def found_unknown_abbrs(self):
@@ -56,24 +57,30 @@ class AbbrFinder(object):
 	
 	
 	def format_abbrs(self, abbr_list):
+		"""format abbrs to printable form, for further use in text report
+		
+		arguments: abbr_list: list of Abbr or list of str
+		returns: formatted result str"""
 		self._logger.debug(f"format_abbr: got input: abbr_list: {abbr_list}")
 		if len(abbr_list) == 0:
-			self._logger.error("format_abbrs: got emptu abbr_list")
+			self._logger.error("format_abbrs: got empty abbr_list, will return empty string")
 			return ""
 		result = ""
 		for abbr in abbr_list:
 			if isinstance(abbr, Abbr):
 				result += abbr.name + " - " + abbr.descr + "\n"
 			else:
-				result += abbr + "\n"
+				try:
+					result += abbr + "\n"
+				except Exception as e:
+					self._logger.error(f"format_abbrs: got error while formatting {abbr}: {e}")
 		return result
 	
 	
 	def load_input_file(self, path_to_file):
 		if not os.path.isfile(path_to_file):
-			print("E this is not a file - " + str(path_to_file))
+			self._logger.error(f"load_input_file: this is not a file - {path_to_file}")
 			return False
-			
 		if path_to_file.endswith(".txt") or path_to_file.endswith(".TXT"):
 			self._logger.info("load_input_file: detected TXT file")
 			self.load_input_txt_file(path_to_file)
@@ -151,24 +158,65 @@ class AbbrFinder(object):
 	
 	
 	def gen_report(self):
-		self._logger.debug("gen_report: starting")
-		
-		self._report = ""
-		
-		# known
-		self._report += "\n\nKNOWN ABBREVIATIONS: \n"
-		self._report += self.format_abbrs(self.found_known_abbrs)
-		
-		# unknown
-		self._report += "\n\n\nUNKNOWN ABBREVIATIONS: \n"
-		self._report += self.format_abbrs(self.found_unknown_abbrs)
+		self._report = AbbrFinderReport(found_known_abbrs = self.found_known_abbrs, found_unknown_abbrs = self.found_unknown_abbrs)
 		
 		self._logger.debug("gen_report: complete")
 		
 		return self._report
-		# raise NotImplemented
+
 	
 	
 	@property
 	def report(self):
 		return self.gen_report()
+
+
+
+@dataclass
+class AbbrFinderReport(object):
+	"""create report for AbbrFinder"""
+	found_known_abbrs: List[Abbr] = field(default_factory = list)
+	found_unknown_abbrs: List[str] = field(default_factory = list)
+	_report_text: str = ""
+	
+	
+	
+	@property
+	def text(self):
+		self._report_text = ""
+		# known
+		self._report_text += "\n\nKNOWN ABBREVIATIONS: \n"
+		self._report_text += self.format_abbrs(self.found_known_abbrs)
+		
+		# unknown
+		self._report_text += "\n\n\nUNKNOWN ABBREVIATIONS: \n"
+		self._report_text += self.format_abbrs(self.found_unknown_abbrs)
+		return self._report_text
+
+	
+	# def __repr__(self):
+	# 	return self.text
+	
+	
+	@property
+	def html(self):
+		return self.text.replace("\n", "<br>\n")
+	
+	
+	def format_abbrs(self, abbr_list):
+		"""format abbrs to printable form, for further use in text report
+		
+		arguments: abbr_list: list of Abbr or list of str
+		returns: formatted result str"""
+		result = ""
+		for abbr in abbr_list:
+			if isinstance(abbr, Abbr):
+				result += abbr.name + " - " + abbr.descr + "\n"
+			else:
+				try:
+					result += abbr + "\n"
+				except Exception as e:
+					pass
+		return result
+	
+	

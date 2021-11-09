@@ -114,97 +114,27 @@ class AbbrHelperApp(object):
 		
 		self._logger.info("load_all: all loaded")
 	
-			
-	
-	def load_db_from_file(self, file = None):
-		if file is None:
-			file = self.DB_FILE
 		
-		self._logger.info("loading DB from file " + str(file))
-		with open(file, "r") as f:
-			all_lines = f.readlines()
-			for line in all_lines:
-				if not self.validate_db_line(line):
-					# print("ERROR invalid DB line " + str(line))
-					continue
-				
-				line_fields = line.replace("\n", "").split(self.DB_DIVIDER)
-				abbr_name = line_fields[0]
-				abbr_decoding = line_fields[1:]
-				if abbr_name not in self.db.keys():
-					self.db[abbr_name] = []
-				self.db[abbr_name].extend(abbr_decoding)
-	
-	
-	def validate_db_line(self, line):
-		if self.DB_DIVIDER not in line:
-			return False
-		if line.startswith("#"):
-			return False
-		if len(line) <= 1:
-			return False
-		fields = line.split(self.DB_DIVIDER)
-		# if fields[0].islower():
-		# 	return False
-		# TODO: проверка всех полей
-		return True
-	
-	
-	def normalize_input_text(self):
-		result = self.input_text
-		for c in self.WORD_DELIMETERS:
-			result = result.replace(c, " ")
-		return result
+	# def gen_report(self):
+	# 	found_abbrs = []
+	# 	not_found_abbrs = []
+	# 	result_abbrs_list = list(self.result_abbrs)
+	# 	result_abbrs_list.sort()
+	# 	self._logger.debug("gen_report: will work with " + str(len(result_abbrs_list)) + " abbrs")
 		
-	
-	# def check_db(self):
-	# 	""""""
-	# 	valid_lines = []
-	# 	with open(self.DB_FILE, "r") as f:
-	# 		lines = f.readlines()
-	# 		for l in lines:
-	# 			if l not in valid_lines:
-	# 				valid_lines.append(l)
-		
-		
-	# 	with open(self.DB_FILE, "w") as f:
-	# 		f.writelines(valid_lines)
-	
-	
-	# new version
-	def find_all_abbrs(self):
-		"""get all abbreviations from input text, either known or unknown"""
-		self.result_abbrs = set()
-		
-		words = self.normalize_input_text().split()
-		for w in words:
-			if is_abbr(w):
-				self._logger.debug("find_all_abbrs: found abbr " + str(w))
-				self.result_abbrs.add(w)
-		
-		self._logger.debug("find_all_abbrs: total abbr set is: " + str(self.result_abbrs))
-		
-		
-	def gen_report(self):
-		found_abbrs = []
-		not_found_abbrs = []
-		result_abbrs_list = list(self.result_abbrs)
-		result_abbrs_list.sort()
-		self._logger.debug("gen_report: will work with " + str(len(result_abbrs_list)) + " abbrs")
-		
-		self.report = "==============================\nFound abbrs:\n==============================\n"
-		for w in result_abbrs_list:
-			descr_list = self.abbr_manager.get_abbrs_by_name(w)
-			if len(descr_list) == 0:
-				self._logger.debug("gen_report: abbr not found in db: " + str(w))
-				self.report += str(w) + " - \n"
-			else:
-				self._logger.debug("gen_report: found abbr in db for: " + str(w) + " - " + str(descr_list))
-				found_abbrs.extend(descr_list)
-				self.report += self.format_abbr(w, descr_list)
-				pass
+	# 	self.report = "==============================\nFound abbrs:\n==============================\n"
+	# 	for w in result_abbrs_list:
+	# 		descr_list = self.abbr_manager.get_abbrs_by_name(w)
+	# 		if len(descr_list) == 0:
+	# 			self._logger.debug("gen_report: abbr not found in db: " + str(w))
+	# 			self.report += str(w) + " - \n"
+	# 		else:
+	# 			self._logger.debug("gen_report: found abbr in db for: " + str(w) + " - " + str(descr_list))
+	# 			found_abbrs.extend(descr_list)
+	# 			self.report += self.format_abbr(w, descr_list)
+	# 			pass
 
-		return self.report
+	# 	return self.report
 	
 
 
@@ -288,7 +218,6 @@ class AbbrHelperWebApp(object):
 					self._logger.error("upload_input_file: no file selected in form")
 					return redirect(request.url)
 				if f:
-					# try\except here
 					try:
 						filename = secure_filename(f.filename)
 						f.save(os.path.join(self.web_app.config["UPLOAD_FOLDER"], filename)) # currently only with temp file
@@ -303,7 +232,7 @@ class AbbrHelperWebApp(object):
 					
 					os.remove(os.path.join(self.web_app.config["UPLOAD_FOLDER"], filename))
 				
-				return render_template("show_result.html", found_abbrs = self.main_app.result_abbrs, report = report.replace("\n", "<br>\n"))
+				return render_template("show_result.html", found_abbrs = self.main_app.abbr_finder.all_found_abbrs, report = report.html)
 		
 		
 		@self.web_app.route("/upload-db-file", methods = ["GET", "POST"])
@@ -332,7 +261,7 @@ class AbbrHelperWebApp(object):
 					# finally delet temp file
 					os.remove(os.path.join(self.web_app.config["UPLOAD_FOLDER"], filename))
 				
-				return render_template("show_result.html", found_abbrs = self.main_app.result_abbrs, report = report.replace("\n", "<br>\n"))
+				return render_template("show_result.html", found_abbrs = self.main_app.result_abbrs, report = report.text.replace("\n", "<br>\n"))
 		
 		
 		@self.web_app.route("/show-db", methods = ["GET"])
@@ -384,7 +313,7 @@ class AbbrHelperWebApp(object):
 					self.main_app.abbr_manager.save(abbr)
 				except Exception as e:
 					self._logger.error("edit_abbr: error: " + str(e) + ", traceback: " + traceback.format_exc())
-				self._logger.debug("returning page ")
+				self._logger.debug("returning page create_edit_abbr.html")
 				return render_template("create_edit_abbr.html", abbr = abbr)
 		
 		

@@ -59,7 +59,6 @@ class AbbrFactory(BaseFactory):
 
 
 
-# new
 class AbbrDAO(BaseDAO):
 	"""docstring for AbbrDAO"""
 	def __init__(self, db = None, logger = None, factory = None):
@@ -220,6 +219,13 @@ class AbbrManager(BaseManager):
 		if name is None:
 			self._logger.error("create_abbr: name is None, so can't create new abbr")
 			return
+		if type(name) != type(str()):
+			self._logger.error("create_abbr: name is not str, so can't create new abbr")
+			return
+		name_orig = name
+		name = normalize_abbr(name)
+		if name != name_orig:
+			self._logger.debug(f"create_abbr: abbr {name_orig} was normalized to {name}")
 		if self.already_exist(name, descr):
 			self._logger.debug(f"create_abbr: abbr {name} - {descr} already exist, will not create")
 			return None

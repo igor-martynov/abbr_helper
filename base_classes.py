@@ -20,6 +20,14 @@ def is_abbr(word):
 		return True
 
 
+def normalize_abbr(abbr_str):
+	if abbr_str.startswith(" "):
+		abbr_str = abbr_str[1:]
+	if abbr_str.endswith(" "):
+		abbr_str = abbr_str[:-1]
+	return abbr_str
+	
+
 class MetaSingleton(type):
 	"""metaclass that creates Singleton class"""
 	
