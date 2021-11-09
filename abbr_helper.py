@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# 2021-11-07
+# 2021-11-09
 
-__version__ = "0.9.2"
+__version__ = "0.9.3"
 __author__ = "Igor Martynov (phx.planewalker@gmail.com)"
 
 

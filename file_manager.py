@@ -9,7 +9,7 @@ from base_classes import *
 
 
 
-# TODO: under construction
+# TODO: under construction, currently unused
 class AbbrFileManager(object):
 	"""docstring for AbbrFileManager"""
 	

@@ -40,7 +40,13 @@ class AbbrFinder(object):
 	
 	@property
 	def found_unknown_abbrs(self):
-		return self.all_found_abbrs - self.found_known_abbrs
+		result_set = set(self.all_found_abbrs)
+		for a in self.found_known_abbrs:
+			try:
+				result_set.remove(a.name)
+			except Exception as e:
+				self._logger.error(f"found_unknown_abbrs: was trying to remove {a.name} from all_found_abbrs, but goot exception: {e}")
+		return result_set
 	
 	
 	def normalize_input_line(self, line):
@@ -113,7 +119,7 @@ class AbbrFinder(object):
 		except Exception as e:
 			self._logger.error(f"load_input_docx_file: error while reading DOCX file: {e}")
 		self.input_word_list = self.normalize_input_text().split()
-		print("D len of input_text: " + str(len(self.input_text)))
+		self._logger.debug(f"load_input_docx_file: len of input_text: {str(len(self.input_text))}")
 		self._logger.debug(f"load_input_docx_file: got {len(self.input_word_list)} words from file {path_to_file}")
 	
 	
@@ -147,18 +153,25 @@ class AbbrFinder(object):
 			if self.is_not_an_abbr(a):
 				self._logger.debug(f"find_abbrs_in_input_text: word {a} is not_an_abbr, will be ignored")
 				continue
-			found = self.abbr_manager.get_abbrs_by_name(a)
+			tmp_found = self.abbr_manager.get_abbrs_by_name(a)
+			found = []
+			for a in tmp_found:
+				if not a.disabled:
+					found.append(a)
+				else:
+					self._logger.debug(f"find_abbrs_in_input_text: abbr {a} will be ignored because it is disabled")
 			if len(found) != 0:
 				self.found_known_abbrs.update(found)
+				a = found
 				self._logger.debug(f"find_abbrs_in_input_text: added found abbrs {found} for word {a}")
 			else:
 				self._logger.debug(f"find_abbrs_in_input_text: word {a} is unknown abbr")
-		
-		pass
+		self._logger.debug(f"find_abbrs_in_input_text: complete. all found: {len(self.all_found_abbrs)}, known: {len(self.found_known_abbrs)}")
 	
 	
 	def gen_report(self):
-		self._report = AbbrFinderReport(found_known_abbrs = self.found_known_abbrs, found_unknown_abbrs = self.found_unknown_abbrs)
+		self._report = AbbrFinderReport(found_known_abbrs = self.found_known_abbrs,
+			found_unknown_abbrs = self.found_unknown_abbrs)
 		
 		self._logger.debug("gen_report: complete")
 		
@@ -177,8 +190,12 @@ class AbbrFinderReport(object):
 	"""create report for AbbrFinder"""
 	found_known_abbrs: List[Abbr] = field(default_factory = list)
 	found_unknown_abbrs: List[str] = field(default_factory = list)
+	# all_found_abbrs: List = field(default_factory = list)
 	_report_text: str = ""
 	
+	@property
+	def all_found_abbrs(self):	
+		return self.found_known_abbrs.union(self.found_unknown_abbrs)
 	
 	
 	@property
@@ -191,6 +208,10 @@ class AbbrFinderReport(object):
 		# unknown
 		self._report_text += "\n\n\nUNKNOWN ABBREVIATIONS: \n"
 		self._report_text += self.format_abbrs(self.found_unknown_abbrs)
+		
+		# all
+		self._report_text += "\n\n\nALL ABBREVIATIONS: \n"
+		self._report_text += self.format_abbrs(self.all_found_abbrs)
 		return self._report_text
 
 	
@@ -209,12 +230,14 @@ class AbbrFinderReport(object):
 		arguments: abbr_list: list of Abbr or list of str
 		returns: formatted result str"""
 		result = ""
-		for abbr in abbr_list:
+		sorted_list = list(abbr_list)
+		sorted_list.sort(key = lambda abbr: abbr.name if isinstance(abbr, Abbr) else abbr)
+		for abbr in sorted_list:
 			if isinstance(abbr, Abbr):
 				result += abbr.name + " - " + abbr.descr + "\n"
 			else:
 				try:
-					result += abbr + "\n"
+					result += abbr + " - \n"
 				except Exception as e:
 					pass
 		return result
