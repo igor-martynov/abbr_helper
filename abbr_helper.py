@@ -3,7 +3,7 @@
 
 # 2021-11-07
 
-__version__ = "0.9.1"
+__version__ = "0.9.2"
 __author__ = "Igor Martynov (phx.planewalker@gmail.com)"
 
 
@@ -39,8 +39,7 @@ from db import *
 from abbr import *
 from group import *
 from abbr_finder import *
-
-
+from db_importer import *
 
 
 
@@ -114,28 +113,20 @@ class AbbrHelperApp(object):
 		
 		self._logger.info("load_all: all loaded")
 	
-		
-	# def gen_report(self):
-	# 	found_abbrs = []
-	# 	not_found_abbrs = []
-	# 	result_abbrs_list = list(self.result_abbrs)
-	# 	result_abbrs_list.sort()
-	# 	self._logger.debug("gen_report: will work with " + str(len(result_abbrs_list)) + " abbrs")
-		
-	# 	self.report = "==============================\nFound abbrs:\n==============================\n"
-	# 	for w in result_abbrs_list:
-	# 		descr_list = self.abbr_manager.get_abbrs_by_name(w)
-	# 		if len(descr_list) == 0:
-	# 			self._logger.debug("gen_report: abbr not found in db: " + str(w))
-	# 			self.report += str(w) + " - \n"
-	# 		else:
-	# 			self._logger.debug("gen_report: found abbr in db for: " + str(w) + " - " + str(descr_list))
-	# 			found_abbrs.extend(descr_list)
-	# 			self.report += self.format_abbr(w, descr_list)
-	# 			pass
-
-	# 	return self.report
 	
+	def import_from_csv_db(self, filename):
+		COMMENT_FOR_IMPORTED = f"Imported from file {filename}"
+		self._logger.debug(f"import_from_csv_db: starting with filename {filename}")
+		db_importer = DBImporter(logger = self._logger.getChild("DBImporter"))
+		db_importer.load_db_from_file(filename)
+		for a, d in db_importer.new_abbr_dict.items():
+			self._logger.debug(f"import_from_csv_db: item is {a}, {d}")
+			if self.abbr_manager.already_exist(a, d[0]):
+				self._logger.info(f"import_from_csv_db: will not add abbr {a} and descr {d[0]}. Reason: already exist.")
+				continue
+			else:
+				self._logger.debug(f"import_from_csv_db: will add abbr {a} and descr {d[0]}.")
+				self.abbr_manager.create_abbr(name = a, descr = d[0], comment = COMMENT_FOR_IMPORTED)
 
 
 
@@ -186,7 +177,7 @@ class AbbrHelperWebApp(object):
 	def check_upload_dir(self):
 		if not os.path.isdir(self.UPLOAD_DIR):
 			os.makedirs(self.UPLOAD_DIR)
-			self._logger.info("check_upload_dir: UPLOAD_DIR created because it was absent: " + str(self.UPLOAD_DIR))
+			self._logger.info(f"check_upload_dir: UPLOAD_DIR created because it was absent: {self.UPLOAD_DIR}")
 		
 	
 	def run_web_interface(self):
@@ -243,25 +234,25 @@ class AbbrHelperWebApp(object):
 			if request.method == "POST":
 				if "file" not in request.files:
 					self._logger.error("upload_db_file: no file part found in request!")
-					return redirect(request.url)
-				
+					return redirect(request.url)				
 				f = request.files["file"]
 				if f.filename == "":
 					self._logger.error("upload_db_file: no file selected")
 					return redirect(request.url)
-				
 				if f:
 					# try\except here
 					filename = secure_filename(f.filename)
-					f.save(os.path.join(self.web_app.config["UPLOAD_FOLDER"], filename)) # currently only with temp file
-					self._logger.info("upload_db_file: uploaded file " + str(os.path.join(self.web_app.config["UPLOAD_FOLDER"], filename)))
+					full_path_to_file = os.path.join(self.web_app.config["UPLOAD_FOLDER"], filename)
+					f.save(full_path_to_file) # currently only with temp file
+					self._logger.info(f"upload_db_file: uploaded file {full_path_to_file}")
 					
 					# read input file
+					self.main_app.import_from_csv_db(full_path_to_file)
 					
-					# finally delet temp file
-					os.remove(os.path.join(self.web_app.config["UPLOAD_FOLDER"], filename))
+					# finally delete temp file
+					os.remove(full_path_to_file)
 				
-				return render_template("show_result.html", found_abbrs = self.main_app.result_abbrs, report = report.text.replace("\n", "<br>\n"))
+				return render_template("blank.html", page_text = f"Abbrs imported from file {filename}.")
 		
 		
 		@self.web_app.route("/show-db", methods = ["GET"])
