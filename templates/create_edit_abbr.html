@@ -18,6 +18,17 @@
 				<input type="text" size="120" id="description" name="description" title="description of abbreviation" value="{{ abbr.descr }}" required><br><br>
 				<label for="group_list">Group list:</label>
 				<input type="text" size="120" id="group_list" name="group_list" title="group list" value="{{ abbr.group_list | empty_filter }}" ><br><br>
+				
+				<br>
+				<br>
+				Groups:<br>
+				{% for g in all_groups %}
+				<label><input type="checkbox" name="group_{{ g._id }}" value="group_{{ g._id }}" {% if g in abbr.groups %} checked {% endif %}> {{ g.name }} {% if g in abbr.groups %} (NOW ASSIGNED) {% endif %} </label><br>
+				{% endfor %}
+				<br>
+				<br>
+				
+				
 				<label for="comment">Comment:</label>
 				<input type="text" size="120" id="comment" name="comment" title="" value = "{{ abbr.comment }}"><br><br>
 				<br>

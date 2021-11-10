@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# 2021-11-09
+# 2021-11-10
 
-__version__ = "0.9.3"
+__version__ = "0.9.4"
 __author__ = "Igor Martynov (phx.planewalker@gmail.com)"
 
 
@@ -38,18 +38,9 @@ from base_classes import *
 from db import *
 from abbr import *
 from group import *
+from not_an_abbr import *
 from abbr_finder import *
 from db_importer import *
-
-
-
-# new
-class NotAnAbbrManager(BaseManager):
-	"""docstring for NotAnAbbrManager"""
-	def __init__(self, db = None, logger = None):
-		super(NotAnAbbrManager, self).__init__(db = db, logger = logger)
-		pass
-		
 
 
 
@@ -84,14 +75,17 @@ class AbbrHelperApp(object):
 	
 	
 	def init_all(self):
+		# group_manager
+		self.group_manager = GroupManager(db = self._db, logger = self._logger.getChild("GroupManager"))
+		
 		# abbr_manager
 		self.abbr_manager = AbbrManager(db = self._db, logger = self._logger.getChild("AbbrManager"))
 		
-		# group_manager
-		self.group_manager = GroupManager(db = self._db, logger = self._logger.getChild("GroupManager"))\
-		
 		# not_an_abbr_manager
 		
+		
+		# interconnects
+		self.abbr_manager.set_group_manager(self.group_manager)
 		
 		# abbr_finder
 		self.abbr_finder = AbbrFinder(abbr_manager = self.abbr_manager, not_an_abbr_dict = {}, logger = self._logger.getChild("AbbrFinder"))
@@ -104,10 +98,11 @@ class AbbrHelperApp(object):
 	
 	
 	def load_all(self):
-		# abbr
-		self.abbr_manager.load_all()
 		# group
 		self.group_manager.load_all()
+		
+		# abbr
+		self.abbr_manager.load_all()
 		
 		# notanabbr
 		
@@ -126,7 +121,7 @@ class AbbrHelperApp(object):
 				continue
 			else:
 				self._logger.debug(f"import_from_csv_db: will add abbr {a} and descr {d[0]}.")
-				self.abbr_manager.create_abbr(name = a, descr = d[0], comment = COMMENT_FOR_IMPORTED)
+				self.abbr_manager.create(name = a, descr = d[0], comment = COMMENT_FOR_IMPORTED)
 
 
 
@@ -160,10 +155,9 @@ class AbbrHelperWebApp(object):
 		self._logger.addHandler(fh)
 		self._logger.info("=========  AbbrHelperWebApp starting. Version " + str(__version__) + "  =========")
 		
-		# 
+		# initialize
 		self.check_upload_dir()
 		self.init_main_app()
-		pass
 	
 	
 	def init_main_app(self):
@@ -276,7 +270,7 @@ class AbbrHelperWebApp(object):
 				elif len(descr) < 3:
 					self._logger.info(f"create_abbr: did not added abbr. Reason: description {descr} did not passed the check, too short")
 				else:
-					self.main_app.abbr_manager.create_abbr(name = abbr_name, descr = descr, comment = comment, disabled = disabled)	
+					self.main_app.abbr_manager.create(name = abbr_name, descr = descr, comment = comment, disabled = disabled)	
 				return render_template("create_edit_abbr.html", abbr = {})
 		
 		
@@ -286,7 +280,7 @@ class AbbrHelperWebApp(object):
 			if abbr is None:
 				return render_template("blank.html", page_text = f"<br>ERRROR: abbr with id {abbr_id} not found!")
 			if request.method == "GET":
-				return render_template("create_edit_abbr.html", abbr = abbr)
+				return render_template("create_edit_abbr.html", abbr = abbr, all_groups = self.main_app.group_manager.dict.values())
 			if request.method == "POST":
 				self._logger.debug("edit_abbr: will edit abbr " + str(abbr_id))
 				try:
@@ -294,18 +288,18 @@ class AbbrHelperWebApp(object):
 					abbr.descr = request.form["description"]
 					abbr.comment = request.form["comment"]
 					group_name_list = request.form["group_list"]
-					# group_id_list = self.main_app.group_manager.get_id_list_by_name_list(group_name_list.replace(", ", ",").split(","))
-					# self._logger.debug(f"edit_abbr: got list of group names: {group_name_list}, list of ids of groups: {group_id_list}")
-					# abbr.group_list = group_id_list
-					groups_str = request.form["group_list"]
-					# abbr.groups = self.main_app.groups_from_str(groups_str)
+					groups = []
+					for _id, g in self.main_app.group_manager.dict.items():
+						if request.form.get(f"group_{_id}") is not None:
+							groups.append(g)
+					self._logger.debug(f"edit_abbr: got groups: {groups}")
+					abbr.groups = groups
 					abbr.disabled = True if request.form.get("disabled") is not None else False
-					# abbr["group_id"] = None if (request.form["group_id"] == "None" or request.form["group_id"] == "") else int(request.form["group_id"])
 					self.main_app.abbr_manager.save(abbr)
 				except Exception as e:
 					self._logger.error("edit_abbr: error: " + str(e) + ", traceback: " + traceback.format_exc())
 				self._logger.debug("returning page create_edit_abbr.html")
-				return render_template("create_edit_abbr.html", abbr = abbr)
+				return render_template("create_edit_abbr.html", abbr = abbr, all_groups = self.main_app.group_manager.dict.values())
 		
 		
 		# ok
@@ -315,7 +309,7 @@ class AbbrHelperWebApp(object):
 			if request.method == "GET":
 				return render_template("delete_abbr.html", abbr = found_abbr)
 			if request.method == "POST":
-				self.main_app.abbr_manager.delete_abbr(found_abbr)
+				self.main_app.abbr_manager.delete(found_abbr)
 				return render_template("main_page.html")
 		
 		# ok
@@ -382,7 +376,8 @@ class AbbrHelperWebApp(object):
 
 
 def print_help():
-	print(f"    {os.path.abspath(__file__)}: Manage abbreviations in web interface..")
+	print(f"    {os.path.abspath(__file__)}: Manage abbreviations in web interface.")
+	print("    Web interface will be launced on all network interfaces.")
 	print("    Use --db-file to specify DB file.")
 
 
