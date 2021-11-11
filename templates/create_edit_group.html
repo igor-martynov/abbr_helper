@@ -18,6 +18,17 @@
 				<input type="text" size="220" id="comment" name="comment" title="" value="{{ group.comment }}"><br><br>
 				<br>
 				<br>
+				
+				<br>
+				<br>
+				Hosts:<br>
+				{% for a in all_abbrs %}
+				<label><input type="checkbox" name="abbr_{{ a._id }}" value="abbr_{{ a._id }}" {% if group in a.groups %} checked {% endif %}> {{ a.name }} {% if group in a.groups %} (NOW ASSIGNED) {% endif %} </label><br>
+				{% endfor %}
+				<br>
+				<br>
+				
+				
 				<label><input type="checkbox" name="disabled" value="disabled" {% if group.disabled %} checked {% endif %}> Disabled </label>
 				<br>
 				<input type="submit" value="Save group"><br>

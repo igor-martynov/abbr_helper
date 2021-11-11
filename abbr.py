@@ -63,13 +63,14 @@ class AbbrFactory(BaseFactory):
 		for group_id in row2:
 			group_to_add = self.group_manager.get_group_by_id(group_id[0])
 			new_obj.groups.append(group_to_add)
+			# group_to_add.abbrs.append(new_obj)
 			self._logger.debug(f"create_from_db_row: added group {group_to_add} to abbr {new_obj}")
 		self._logger.debug(f"create_from_db_row: created abbr: {new_obj}")
 		return new_obj
 	
 	
 	def create(self, _id = None, name = "", descr = "", groups = [], comment = "", disabled = False):
-		new_abbr = Abbr(_id = _id if _id is not None else -1, name = name, descr = descr, groups = group_list, comment = comment, disabled = disabled)
+		new_abbr = Abbr(_id = _id if _id is not None else -1, name = name, descr = descr, groups = groups, comment = comment, disabled = disabled)
 		return new_abbr
 
 
@@ -237,7 +238,7 @@ class AbbrManager(BaseManager):
 		return False
 	
 	
-	def create(self, name = None, group_list = [], descr = None, comment = None, disabled = False):
+	def create(self, name = None, groups = [], descr = None, comment = None, disabled = False):
 		if name is None:
 			self._logger.error("create: name is None, so can't create new abbr")
 			return
@@ -253,7 +254,7 @@ class AbbrManager(BaseManager):
 			return None
 		new_abbr = self._factory.create(name = name,
 			descr = descr,
-			group_list = group_list,
+			groups = groups,
 			comment = comment,
 			disabled = disabled)
 		self._DAO.create(new_abbr)

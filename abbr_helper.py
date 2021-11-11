@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# 2021-11-10
+# 2021-11-11
 
-__version__ = "0.9.4"
+__version__ = "0.9.5"
 __author__ = "Igor Martynov (phx.planewalker@gmail.com)"
 
 
@@ -115,7 +115,7 @@ class AbbrHelperApp(object):
 		db_importer = DBImporter(logger = self._logger.getChild("DBImporter"))
 		db_importer.load_db_from_file(filename)
 		for a, d in db_importer.new_abbr_dict.items():
-			self._logger.debug(f"import_from_csv_db: item is {a}, {d}")
+			self._logger.debug(f"import_from_csv_db: importing item {a}, {d}")
 			if self.abbr_manager.already_exist(a, d[0]):
 				self._logger.info(f"import_from_csv_db: will not add abbr {a} and descr {d[0]}. Reason: already exist.")
 				continue
@@ -181,6 +181,63 @@ class AbbrHelperWebApp(object):
 		self.web_app.secret_key = "qwxnmkqempemjabefwbdirbvdfcwkh"
 		self.web_app.config["UPLOAD_FOLDER"] = self.UPLOAD_DIR
 		self.web_app.config["MAX_CONTENT_LENGTH"] = self.MAX_FILE_SIZE
+		
+		
+		def create_edit_abbr_from_request(abbr = None):
+			"""
+			arguments: abbr: if it's None then it is create mode, otherwise edit mode"""
+			try:
+				abbr_name = request.form["abbreviation"]
+				descr = request.form["description"]
+				comment = request.form["comment"]
+				disabled = True if request.form.get("disabled") is not None else False
+				group_name_list = request.form["group_list"]
+				groups = []
+				for _id, g in self.main_app.group_manager.dict.items():
+					if request.form.get(f"group_{_id}") is not None:
+						groups.append(g)
+				self._logger.debug(f"create_edit_abbr_from_request: got groups: {groups}")
+			except Exception as e:
+				self._logger.error("create_edit_abbr_from_request: error: " + str(e) + ", traceback: " + traceback.format_exc())
+			if len(abbr_name) < 2:
+				self._logger.info(f"create_edit_abbr_from_request: did not added abbr. Reason: abbr {abbr_name} did not passed the check, too short")
+			elif len(descr) < 3:
+				self._logger.info(f"create_edit_abbr_from_request: did not added abbr. Reason: description {descr} did not passed the check, too short")
+			else:
+				if abbr is None: # create mode
+					new_abbr = self.main_app.abbr_manager.create(name = abbr_name, descr = descr, comment = comment, disabled = disabled, groups = groups)	
+					return new_abbr
+				else: # edit mode
+					abbr.name = abbr_name
+					abbr.descr = descr
+					abbr.comment = comment
+					abbr.disabled = disabled
+					abbr.groups = groups
+					self.main_app.abbr_manager.save(abbr)
+		
+		
+		def create_edit_group_from_request(group = None):
+			name = request.form["name"]
+			comment = request.form["comment"]
+			disabled = True if request.form.get("disabled") is not None else False
+			abbrs = []
+			for _id, a in self.main_app.abbr_manager.dict.items():
+				if request.form.get(f"abbr_{_id}") is not None:
+					abbrs.append(a)
+			self._logger.debug(f"create_edit_group_from_request: got abbrs {abbrs} for group {group}")
+			if group is None:
+				new_group = self.main_app.group_manager.create(name = name, comment = comment, disabled = disabled)
+				for a in abbrs:
+					if new_group not in a.groups:
+						a.groups.append(new_group)
+						self.main_app.abbr_manager.save(a)
+				return new_group
+			else:
+				group.name = name
+				group.comment = comment
+				group.disabled = disabled
+				self.main_app.group_manager.save(group)
+			self._logger.debug(f"create_edit_group_from_request: complete")
 		
 		
 		@self.web_app.route("/", methods = ["GET", "POST"])
@@ -258,20 +315,10 @@ class AbbrHelperWebApp(object):
 		@self.web_app.route("/create-abbr", methods = ["GET", "POST"])
 		def create_abbr():
 			if request.method == "GET":
-				return render_template("create_edit_abbr.html", abbr = {})
+				return render_template("create_edit_abbr.html", abbr = {}, all_groups = self.main_app.group_manager.dict.values())
 			if request.method == "POST":
-				abbr = {}
-				abbr_name = request.form["abbreviation"]
-				descr = request.form["description"]
-				comment = request.form["comment"]
-				disabled = True if request.form.get("disabled") is not None else False
-				if len(abbr_name) < 2:
-					self._logger.info(f"create_abbr: did not added abbr. Reason: abbr {abbr_name} did not passed the check, too short")
-				elif len(descr) < 3:
-					self._logger.info(f"create_abbr: did not added abbr. Reason: description {descr} did not passed the check, too short")
-				else:
-					self.main_app.abbr_manager.create(name = abbr_name, descr = descr, comment = comment, disabled = disabled)	
-				return render_template("create_edit_abbr.html", abbr = {})
+				new_abbr = create_edit_abbr_from_request()
+				return render_template("create_edit_abbr.html", abbr = new_abbr, all_groups = self.main_app.group_manager.dict.values())
 		
 		
 		@self.web_app.route("/edit-abbr/<int:abbr_id>", methods = ["GET", "POST"])
@@ -283,21 +330,7 @@ class AbbrHelperWebApp(object):
 				return render_template("create_edit_abbr.html", abbr = abbr, all_groups = self.main_app.group_manager.dict.values())
 			if request.method == "POST":
 				self._logger.debug("edit_abbr: will edit abbr " + str(abbr_id))
-				try:
-					abbr.name = request.form["abbreviation"]
-					abbr.descr = request.form["description"]
-					abbr.comment = request.form["comment"]
-					group_name_list = request.form["group_list"]
-					groups = []
-					for _id, g in self.main_app.group_manager.dict.items():
-						if request.form.get(f"group_{_id}") is not None:
-							groups.append(g)
-					self._logger.debug(f"edit_abbr: got groups: {groups}")
-					abbr.groups = groups
-					abbr.disabled = True if request.form.get("disabled") is not None else False
-					self.main_app.abbr_manager.save(abbr)
-				except Exception as e:
-					self._logger.error("edit_abbr: error: " + str(e) + ", traceback: " + traceback.format_exc())
+				create_edit_abbr_from_request(abbr = abbr)
 				self._logger.debug("returning page create_edit_abbr.html")
 				return render_template("create_edit_abbr.html", abbr = abbr, all_groups = self.main_app.group_manager.dict.values())
 		
@@ -331,26 +364,28 @@ class AbbrHelperWebApp(object):
 			if found_group is None:
 				return render_template("blank.html", page_text = f"<br>ERRROR: group with id {group_id} not found!")
 			if request.method == "GET":
-				return render_template("create_edit_group.html", group = found_group)
+				return render_template("create_edit_group.html", group = found_group, all_abbrs = self.main_app.abbr_manager.dict.values())
 			if request.method == "POST":
-				name = request.form["name"]
-				comment = request.form["comment"]
-				disabled = True if request.form.get("disabled") is not None else False
-				return render_template("create_edit_group.html", group = found_group)
+				# name = request.form["name"]
+				# comment = request.form["comment"]
+				# disabled = True if request.form.get("disabled") is not None else False
+				create_edit_group_from_request(group = found_group)
+				return render_template("create_edit_group.html", group = found_group, all_abbrs = self.main_app.abbr_manager.dict.values())
 		
 		
 		@self.web_app.route("/create-group", methods = ["GET", "POST"])
 		def create_group():
 			if request.method == "GET":
-				return render_template("create_edit_group.html", group = None)
+				return render_template("create_edit_group.html", group = None, all_abbrs = self.main_app.abbr_manager.dict.values())
 			if request.method == "POST":
 				self._logger.debug("create_group: got POST, will create group according to form")
-				name = request.form["name"]
-				comment = request.form["comment"]
-				disabled = True if request.form.get("disabled") is not None else False
-				self._logger.debug(f"create_group: got from form: name: {name}, comment: {comment}, disabled: {disabled}")
-				new_obj = self.main_app.group_manager.create(name = name, comment = comment, disabled = disabled)		
-				return redirect(f"/edit-group/{new_obj._id}")
+				# name = request.form["name"]
+				# comment = request.form["comment"]
+				# disabled = True if request.form.get("disabled") is not None else False
+				# new_obj = self.main_app.group_manager.create(name = name, comment = comment, disabled = disabled)		
+				new_group = create_edit_group_from_request(group = None)
+				# return redirect(f"/edit-group/{new_obj._id}")
+				return render_template("create_edit_group.html", group = new_group, all_abbrs = self.main_app.abbr_manager.dict.values())
 		
 		
 		@self.web_app.route("/delete-group/<int:group_id>", methods = ["GET", "POST"])
