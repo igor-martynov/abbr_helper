@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# 2021-11-11
+# 2021-11-12
 
 __version__ = "0.9.5"
 __author__ = "Igor Martynov (phx.planewalker@gmail.com)"
@@ -86,10 +86,10 @@ class AbbrHelperApp(object):
 		
 		# interconnects
 		self.abbr_manager.set_group_manager(self.group_manager)
+		self.group_manager.set_abbr_manager(self.abbr_manager)
 		
 		# abbr_finder
 		self.abbr_finder = AbbrFinder(abbr_manager = self.abbr_manager, not_an_abbr_dict = {}, logger = self._logger.getChild("AbbrFinder"))
-		
 		
 		# db_manager
 		self.db_manager = DBManager(db = self._db, logger = self._logger.getChild("DBManager"))
@@ -318,7 +318,8 @@ class AbbrHelperWebApp(object):
 				return render_template("create_edit_abbr.html", abbr = {}, all_groups = self.main_app.group_manager.dict.values())
 			if request.method == "POST":
 				new_abbr = create_edit_abbr_from_request()
-				return render_template("create_edit_abbr.html", abbr = new_abbr, all_groups = self.main_app.group_manager.dict.values())
+				# return render_template("create_edit_abbr.html", abbr = new_abbr, all_groups = self.main_app.group_manager.dict.values())
+				return redirect(f"/edit-abbr/{new_abbr}")
 		
 		
 		@self.web_app.route("/edit-abbr/<int:abbr_id>", methods = ["GET", "POST"])
@@ -348,13 +349,13 @@ class AbbrHelperWebApp(object):
 		# ok
 		@self.web_app.route("/show-all-abbrs", methods = ["GET"])
 		def show_all_abbrs():
-			self._logger.debug(f"show_all_abbrs: will display self.main_app.abbr_manager.dict: {self.main_app.abbr_manager.dict}")
+			# self._logger.debug(f"show_all_abbrs: will display self.main_app.abbr_manager.dict: {self.main_app.abbr_manager.dict}")
 			return render_template("show_all_abbrs.html", abbrs = self.main_app.abbr_manager.dict)
 	
 		# ok
 		@self.web_app.route("/show-all-groups", methods = ["GET"])
 		def show_all_groups():
-			self._logger.debug(f"show_all_groups: will display self.main_app.group_manager.dict")
+			# self._logger.debug(f"show_all_groups: will display self.main_app.group_manager.dict")
 			return render_template("show_all_groups.html", groups = self.main_app.group_manager.dict)
 		
 		
@@ -366,9 +367,6 @@ class AbbrHelperWebApp(object):
 			if request.method == "GET":
 				return render_template("create_edit_group.html", group = found_group, all_abbrs = self.main_app.abbr_manager.dict.values())
 			if request.method == "POST":
-				# name = request.form["name"]
-				# comment = request.form["comment"]
-				# disabled = True if request.form.get("disabled") is not None else False
 				create_edit_group_from_request(group = found_group)
 				return render_template("create_edit_group.html", group = found_group, all_abbrs = self.main_app.abbr_manager.dict.values())
 		
@@ -379,13 +377,9 @@ class AbbrHelperWebApp(object):
 				return render_template("create_edit_group.html", group = None, all_abbrs = self.main_app.abbr_manager.dict.values())
 			if request.method == "POST":
 				self._logger.debug("create_group: got POST, will create group according to form")
-				# name = request.form["name"]
-				# comment = request.form["comment"]
-				# disabled = True if request.form.get("disabled") is not None else False
-				# new_obj = self.main_app.group_manager.create(name = name, comment = comment, disabled = disabled)		
 				new_group = create_edit_group_from_request(group = None)
-				# return redirect(f"/edit-group/{new_obj._id}")
-				return render_template("create_edit_group.html", group = new_group, all_abbrs = self.main_app.abbr_manager.dict.values())
+				return redirect(f"/edit-group/{new_group._id}")
+				# return render_template("create_edit_group.html", group = new_group, all_abbrs = self.main_app.abbr_manager.dict.values())
 		
 		
 		@self.web_app.route("/delete-group/<int:group_id>", methods = ["GET", "POST"])

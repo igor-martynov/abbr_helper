@@ -106,6 +106,7 @@ class GroupManager(BaseManager):
 		super(GroupManager, self).__init__(db = db, logger = logger)
 		self._group_factory = None
 		self._groupDAO = None
+		self.abbr_manager = None
 		self.init_all()
 		pass
 	
@@ -123,6 +124,10 @@ class GroupManager(BaseManager):
 		self._DAO.load_all()
 		self.dict = self._DAO.dict
 		self._logger.debug(f"load_all: complete, loaded {len(self.dict)} groups")
+	
+	
+	def set_abbr_manager(self, abbr_manager):
+		self.abbr_manager = abbr_manager
 	
 	
 	def get_group_by_id(self, _id):
@@ -175,8 +180,14 @@ class GroupManager(BaseManager):
 	
 	
 	def delete(self, obj):
+		self._logger.debug(f"delete: will delete group {obj}")
 		obj_id = obj._id
 		self._DAO.delete(obj)
+		for a in self.abbr_manager.dict.values():
+			if obj in a.groups:
+				a.groups.remove(obj)
+				self._logger.debug(f"delete: deleted group {obj} from abbr {a}")
+				self.abbr_manager.save(a)
 		del(self.dict[obj._id])
 		self._logger.info(f"delete: obj with id {obj_id} deleted both from dict and DB")
 		pass

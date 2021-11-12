@@ -17,7 +17,6 @@ class Abbr(object):
 	comment: str
 	disabled: bool
 	_id: int = -1 # this should be overwritten upon first save
-	# group_list: List[int] = field(default_factory = list)
 	groups: List[Group] = field(default_factory = list)
 	
 
@@ -26,8 +25,8 @@ class Abbr(object):
 		"""abbr is disabled if either self.disabled, or one of it's group is disabled"""
 		if self.disabled: return True
 		for g in self.groups:
-			if d.disabled:
-				return True
+			if not d.disabled:
+				return False
 		return False
 	
 	
@@ -50,7 +49,7 @@ class AbbrFactory(BaseFactory):
 		super(AbbrFactory, self).__init__()
 		self._logger = logger
 		self.group_manager = group_manager
-		pass
+	
 	
 	def set_group_manager(self, group_manager):
 		self.group_manager = group_manager
@@ -63,7 +62,6 @@ class AbbrFactory(BaseFactory):
 		for group_id in row2:
 			group_to_add = self.group_manager.get_group_by_id(group_id[0])
 			new_obj.groups.append(group_to_add)
-			# group_to_add.abbrs.append(new_obj)
 			self._logger.debug(f"create_from_db_row: added group {group_to_add} to abbr {new_obj}")
 		self._logger.debug(f"create_from_db_row: created abbr: {new_obj}")
 		return new_obj
@@ -79,9 +77,6 @@ class AbbrDAO(BaseDAO):
 	"""docstring for AbbrDAO"""
 	def __init__(self, db = None, logger = None, factory = None):
 		super(AbbrDAO, self).__init__(db = db, logger = logger, factory = factory)
-		
-		# self._db_manager = db_manager
-		# self._logger = logger
 		
 		pass
 	
@@ -266,7 +261,6 @@ class AbbrManager(BaseManager):
 		abbr_id = abbr._id
 		self._DAO.delete(abbr)
 		del(self.dict[abbr._id])
-		# del(abbr)
 		self._logger.info(f"delete: abbr with id {abbr_id} deleted both from dict and DB")
 
 
