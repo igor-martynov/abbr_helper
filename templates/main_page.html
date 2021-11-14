@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<link rel="stylesheet" href="{{ url_for('static', filename='abbr_helper.css') }} ">
+		<link rel="stylesheet" href="{{ url_for('static', filename='abbr_helper.css') }}">
 	</head>
 	
 	<body>
@@ -10,20 +10,22 @@
 		<div>
 			<br>
 			<br>
-			This is main page of AbbrHelper version {{app_version}}.<br>
+			AbbrHelper version {{app_version}}.<br>
 			<br>
 			<br>
 			<br>
 			[<a href="/show-all-abbrs" title="show all abbrs">Show all abbrs</a>]<br>
 			[<a href="/show-all-groups" title="show all groups">Show all groups</a>]<br>
+			[<a href="/show-all-not-an-abbrs" title="show all abbr exceptions">Show all abbr exceptions</a>]<br>
 			<br>
 			[<a href="/upload-input-file" title="upload input file to search abbreviations in">Upload input file</a>]<br>
-			[<a href="/upload-db-file" title="upload DB file to import abbreviations in">Upload DB file for import abbrs</a>]<br>
+			[<a href="/upload-db-file" title="upload DB file to import abbreviations from">Upload CSV file for import abbrs</a>]<br>
 			<br>
 			[<a href="/show-db" title="show db">Show database</a>]<br>
 			<br>
 			[<a href="/create-abbr" title="add new abbreviation to DB">Create abbreviation</a>]<br>
 			[<a href="/create-group" title="add new group to DB">Create group</a>]<br>
+			[<a href="/create-not-an-abbr" title="add new abbreviation exception to DB">Create exception (not_an_abbr)</a>]<br>
 			<br>
 			<br>
 			

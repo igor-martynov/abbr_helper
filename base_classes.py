@@ -72,10 +72,14 @@ class DBQueryExecutor(object, metaclass = MetaSingleton):
 			abbr_id INTEGER,
 			group_id INTEGER)""")
 		
-		self.execute_db_query("""CREATE TABLE IF NOT EXISTS not_an_abbr(id INTEGER PRIMARY KEY AUTOINCREMENT,
+		self.execute_db_query("""CREATE TABLE IF NOT EXISTS not_an_abbrs(id INTEGER PRIMARY KEY AUTOINCREMENT,
 			name TEXT,
 			comment TEXT,
 			disabled INTEGER default 0)""")
+		
+		self.execute_db_query("""CREATE TABLE IF NOT EXISTS not_an_abbr_group(id INTEGER PRIMARY KEY AUTOINCREMENT,
+			not_an_abbr_id INTEGER,
+			group_id INTEGER)""")
 	
 	
 	def execute_db_query(self, query, *argv):
@@ -115,13 +119,17 @@ class BaseDAO(object):
 		self.dict = {}
 	
 	
-	def create(self, obj): pass
+	def create(self, obj):
+		raise NotImplemented
 	
-	def read(self, _id): pass
+	def read(self, _id):
+		raise NotImplemented
 	
-	def update(self, obj): pass
+	def update(self, obj):
+		raise NotImplemented
 	
-	def delete(self, obj): pass
+	def delete(self, obj):
+		raise NotImplemented
 
 
 
@@ -133,9 +141,12 @@ class BaseFactory(object):
 		pass
 	
 	
-	def create(self): pass
+	def create(self):
+		raise NotImplemented
 	
-	def create_from_db_row(self): pass
+	
+	def create_from_db_row(self):
+		raise NotImplemented
 	
 
 
@@ -143,9 +154,11 @@ class BaseManager(object):
 	"""docstring for BaseManager"""
 	def __init__(self, db = None, logger = None):
 		super(BaseManager, self).__init__()
-		self._db = db
-		self._logger = logger
 		self.dict = {}
+		self._db = db
+		self._DAO = None
+		self._factory = None
+		self._logger = logger
 	
 	
 	def save(self):
@@ -154,7 +167,6 @@ class BaseManager(object):
 	
 	def delete(self):
 		raise NotImplemented
-		
 		
 	
 	def create(self):

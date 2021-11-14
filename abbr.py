@@ -22,13 +22,17 @@ class Abbr(object):
 
 	@property
 	def is_disabled(self):
-		"""abbr is disabled if either self.disabled, or one of it's group is disabled"""
-		if self.disabled: return True
-		for g in self.groups:
-			if not d.disabled:
+		"""abbr is disabled if either self.disabled, or all of it's groups are disabled"""
+		if self.disabled: 
+			return True
+		else:
+			if len(self.groups) == 0:
 				return False
-		return False
-	
+			for g in self.groups:
+				if not g.disabled:
+					return False
+			return True
+		
 	
 	@property
 	def group_id_list(self):
@@ -112,7 +116,7 @@ class AbbrDAO(BaseDAO):
 		self._db.execute_db_query("""DELETE FROM abbr_group WHERE abbr_id == :abbr_id""", {"abbr_id": obj._id})
 		self._logger.debug(f"update: interconnects resetted for {obj}")
 		for group_id in obj.group_id_list:
-			self._logger.debug(f"update: will save interconnect abbr {obj} group_id {group_id}")
+			self._logger.debug(f"update: will save interconnect between abbr {obj} group_id {group_id}")
 			self._db.execute_db_query("""INSERT INTO abbr_group(abbr_id, group_id) VALUES(:abbr_id, :group_id)""", {"abbr_id": obj._id, "group_id": group_id})
 		self._logger.info(f"update: saved abbr as: {obj}")
 	
@@ -150,14 +154,9 @@ class AbbrManager(BaseManager):
 	"""
 	def __init__(self, db = None, logger = None, group_manager = None):
 		super(AbbrManager, self).__init__(db = db, logger = logger)
-		
-		# self.abbr_list = []
-		# self.abbr_dict = {}
-		self.dict = {}
-		# self._db_manager = db_manager
-		# self._logger = logger
+		# self.dict = {}
 		self._factory = None
-		self._DAO = None
+		# self._DAO = None
 		self.group_manager = group_manager
 		
 		self.init_all()
@@ -171,9 +170,11 @@ class AbbrManager(BaseManager):
 		self._DAO = AbbrDAO(db = self._db, logger = self._logger.getChild("AbbrDAO"), factory = self._factory.create_from_db_row)
 		self._logger.debug("init_all: complete")
 	
+	
 	def set_group_manager(self, group_manager):
 		self.group_manager = group_manager
 		self._factory.set_group_manager(group_manager)
+		self._logger.debug(f"set_group_manager: self.group_manager and self._factory.group_manager both set to {self.group_manager}")
 	
 	
 	def _get_ids_by_name(self, _name):

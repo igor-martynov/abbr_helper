@@ -5,15 +5,14 @@
 		<link rel="stylesheet" href="{{ url_for('static', filename='abbr_helper.css') }} ">
 	</head>
 	
-	<body> 
+	<body>
+		{% include 'header.jinja2.html' %}
 		<div>
 			<br>
 			ALL FOUND ABBRS:<br>
 			{% for abbr in found_abbrs %}
 			{{ abbr }},
 			{% endfor %}
-			
-			
 			<br>
 			<br>
 			<br>
@@ -22,7 +21,7 @@
 			<br>
 			{{ report | safe}}
 			<br>
-			
+			<br>
 		</div>
     
     </body>

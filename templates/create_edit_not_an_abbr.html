@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<meta charset="utf-8">
+		<link rel="stylesheet" href="{{ url_for('static', filename='abbr_helper.css') }} ">
+	</head>
+	
+	<body>
+		{% include 'header.jinja2.html' %}
+		<div>
+			<form class="space_between_scroll" action="" method="post">
+				<br>
+				<br>
+				<label for="not_an_abbreviation">Not An Abbreviation:</label>
+				<input type="text" size="120" id="not_an_abbreviation" name="not_an_abbreviation" title="name of not an abbreviation" value="{{ not_an_abbr.name }}" required><br><br>
+				
+				<br>
+				<br>
+				Groups:<br>
+				{% for g in all_groups %}
+				<label><input type="checkbox" name="group_{{ g._id }}" value="group_{{ g._id }}" {% if g in not_an_abbr.groups %} checked {% endif %}> {{ g.name }} {% if g in not_an_abbr.groups %} (NOW ASSIGNED) {% endif %} </label><br>
+				{% endfor %}
+				<br>
+				<br>
+				
+				
+				<label for="comment">Comment:</label>
+				<input type="text" size="120" id="comment" name="comment" title="" value = "{{ not_an_abbr.comment }}"><br><br>
+				<br>
+				<br>
+				<label><input type="checkbox" name="disabled" value="disabled" {% if not_an_abbr.disabled %} checked {% endif %}> Disabled </label>
+				<br>
+				<br>
+				<input type="submit" value="Save not an abbreviation"><br>
+			</form>
+		</div>
+    
+    </body>
+</html>

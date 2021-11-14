@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<link rel="stylesheet" href="{{ url_for('static', filename='abbr_helper.css') }} ">
+	</head>
+	
+	<body>
+		{% include 'header.jinja2.html' %}
+		<div>
+			<br>
+			Abbreviation Exceptions:<br>
+			({{ not_an_abbrs | length }} total)<br>
+			<br>
+			<br>
+			<br>
+			{% for _id, not_an_abbr in not_an_abbrs.items() %}
+			id{{ _id }}:  {{ not_an_abbr.name }} [<a href="/edit-not-an-abbr/{{ _id }}" >edit</a>] [<a href="/delete-not-an-abbr/{{ _id }}" >delete</a>]<br>
+			{% endfor %}
+			<br>
+			<br>
+			<br>
+			
+		</div>
+    
+    </body>
+</html>

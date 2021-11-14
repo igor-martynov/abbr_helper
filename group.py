@@ -104,8 +104,8 @@ class GroupManager(BaseManager):
 	"""docstring for GroupManager"""
 	def __init__(self, db = None, logger = None):
 		super(GroupManager, self).__init__(db = db, logger = logger)
-		self._group_factory = None
-		self._groupDAO = None
+		# self._group_factory = None
+		# self._groupDAO = None
 		self.abbr_manager = None
 		self.init_all()
 		pass

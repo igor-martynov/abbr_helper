@@ -20,22 +20,23 @@ class AbbrFinder(object):
 	def __init__(self,
 		logger = None,
 		abbr_manager = None,
-		# group_manager = None,
-		not_an_abbr_dict = {}):
+		group_manager = None,
+		not_an_abbr_manager = None):
 		super(AbbrFinder, self).__init__()
 		self._logger = logger
 		
 		self.WORD_DELIMETERS = ".,/\\!@?:;-+=\n()\"\'«»*"
 		
 		self.abbr_manager = abbr_manager
-		# self.group_manager = group_manager
-		self.not_an_abbr_dict = not_an_abbr_dict
+		self.group_manager = group_manager
+		self.not_an_abbr_manager = not_an_abbr_manager
 		
 		self.input_text = ""
 		self.input_word_list = []
 		
 		self.all_found_abbrs = set()
 		self.found_known_abbrs = set()
+		self.found_known_not_an_abbrs = set()
 	
 	
 	@property
@@ -126,15 +127,13 @@ class AbbrFinder(object):
 	def find_abbrs_in_file(self, path_to_file):
 		self.load_input_file(path_to_file)
 		self.find_abbrs_in_input_text()
-		pass
 	
 	
 	def is_not_an_abbr(self, not_an_abbr):
-		for naa in self.not_an_abbr_dict.values():
-			if naa.name == not_an_abbr and not naa.disabled:
-				return True
-			else:
-				return False
+		if not_an_abbr not in self.not_an_abbr_manager.all_names:
+			return False
+		else:
+			return True
 	
 	
 	def find_abbrs_in_input_text(self):
@@ -143,9 +142,11 @@ class AbbrFinder(object):
 		self.all_found_abbrs = set()
 		self.found_known_abbrs = set()
 		for w in self.input_word_list:
-			if is_abbr(w):
+			if is_abbr(w) and not self.is_not_an_abbr(w):
 				self.all_found_abbrs.add(w)
-		self._logger.debug(f"find_abbrs_in_input_text: found abbrs: {self.all_found_abbrs}")
+			if self.is_not_an_abbr(w):
+				self.found_known_not_an_abbrs.add(w)
+		self._logger.debug(f"find_abbrs_in_input_text: found abbrs: {self.all_found_abbrs}, not_an_abbrs: {self.found_known_not_an_abbrs}")
 		self._logger.debug(f"find_abbrs_in_input_text: step 1 complete. starting step 2")
 		
 		# step 2 - known or unknown
@@ -172,9 +173,7 @@ class AbbrFinder(object):
 	def gen_report(self):
 		self._report = AbbrFinderReport(found_known_abbrs = self.found_known_abbrs,
 			found_unknown_abbrs = self.found_unknown_abbrs)
-		
 		self._logger.debug("gen_report: complete")
-		
 		return self._report
 
 	
