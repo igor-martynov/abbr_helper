@@ -48,7 +48,7 @@ class Abbr(object):
 	
 
 class AbbrFactory(BaseFactory):
-	"""docstring for AbbrFactory"""
+	"""factory for Abbr"""
 	def __init__(self, logger = None, group_manager = None):
 		super(AbbrFactory, self).__init__()
 		self._logger = logger
@@ -61,6 +61,12 @@ class AbbrFactory(BaseFactory):
 	
 	
 	def create_from_db_row(self, row1, row2):
+		"""create new Abbr object from DB row
+		
+		arguments: row1 - tuple of (id: int, name: str, descr: str, comment: str, disabled: int)
+			row2: list like [(group_id1,), (group_id2,), ...]
+		returns: new Abbr object
+		"""
 		self._logger.debug(f"create_from_db_row: will create new abbr from row1: {row1}, and row2: {row2}")
 		new_obj = Abbr(_id = row1[0], name = row1[1], descr = row1[2], comment = row1[3], disabled = True if row1[4] == 1 else False)
 		for group_id in row2:
