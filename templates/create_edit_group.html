@@ -18,12 +18,11 @@
 				<input type="text" size="220" id="comment" name="comment" title="" value="{{ group.comment }}"><br><br>
 				<br>
 				<br>
-				
 				<br>
 				<br>
-				Hosts:<br>
+				Abbreviations:<br>
 				{% for a in all_abbrs %}
-				<label><input type="checkbox" name="abbr_{{ a._id }}" value="abbr_{{ a._id }}" {% if group in a.groups %} checked {% endif %}> {{ a.name }} {% if group in a.groups %} (NOW ASSIGNED) {% endif %} </label><br>
+				<label><input type="checkbox" name="abbr_{{ a._id }}" value="abbr_{{ a._id }}" {% if group in a.groups %} checked {% endif %}> {{ a.name }} {% if group in a.groups %} (NOW ASSIGNED) {% endif %} - {{ a.descr }} </label><br>
 				{% endfor %}
 				<br>
 				<br>

@@ -48,13 +48,9 @@ class AbbrHelperApp(object):
 		super(AbbrHelperApp, self).__init__()
 		
 		self._db = db
-		self.DB_DIR = "./DBs"
-		self.db = {}
-		self.DB_DIVIDER = ";"
-		
-		self.input_word_list = []
-		self.input_text = ""
-		self.result_abbrs = set()
+		# self.input_word_list = []
+		# self.input_text = ""
+		# self.result_abbrs = set()
 		
 		self.db_manager = None
 		self.abbr_manager = None
@@ -63,7 +59,7 @@ class AbbrHelperApp(object):
 		self.abbr_finder = None
 		
 		self._logger = logger
-		self.report = ""
+		# self.report = ""
 		
 		self.init_all()
 	
@@ -274,12 +270,8 @@ class AbbrHelperWebApp(object):
 						self._logger.error(f"upload_input_file: could not save uploaded file as {filename}")
 					# read input file
 					self.main_app.abbr_finder.find_abbrs_in_file(os.path.join(self.web_app.config["UPLOAD_FOLDER"], filename))
-					# self.main_app.abbr_finder.find_all_abbrs()
-					# report = self.main_app.abbr_finder.gen_report()
 					report = self.main_app.abbr_finder.report
-					
 					os.remove(os.path.join(self.web_app.config["UPLOAD_FOLDER"], filename))
-				
 				return render_template("show_result.html", found_abbrs = self.main_app.abbr_finder.all_found_abbrs, report = report.html)
 		
 		
@@ -287,7 +279,6 @@ class AbbrHelperWebApp(object):
 		def upload_db_file():
 			if request.method == "GET":
 				return render_template("upload_db_file.html")
-				
 			if request.method == "POST":
 				if "file" not in request.files:
 					self._logger.error("upload_db_file: no file part found in request!")
@@ -297,18 +288,19 @@ class AbbrHelperWebApp(object):
 					self._logger.error("upload_db_file: no file selected")
 					return redirect(request.url)
 				if f:
-					# try\except here
-					filename = secure_filename(f.filename)
-					full_path_to_file = os.path.join(self.web_app.config["UPLOAD_FOLDER"], filename)
-					f.save(full_path_to_file) # currently only with temp file
-					self._logger.info(f"upload_db_file: uploaded file {full_path_to_file}")
-					
-					# read input file
-					self.main_app.import_from_csv_db(full_path_to_file)
-					
-					# finally delete temp file
-					os.remove(full_path_to_file)
-				
+					try:
+						filename = secure_filename(f.filename)
+						full_path_to_file = os.path.join(self.web_app.config["UPLOAD_FOLDER"], filename)
+						f.save(full_path_to_file) # currently only with temp file
+						self._logger.info(f"upload_db_file: uploaded file {full_path_to_file}")
+						# read input file
+						self.main_app.import_from_csv_db(full_path_to_file)
+						
+						# finally delete temp file
+						os.remove(full_path_to_file)
+					except Exception as e:
+						self._logger.error(f"upload_db_file: got error while reading and parsing file {filename}")
+						return render_template("blank.html", page_text = f"got error while reading and parsing file {filename}")
 				return render_template("blank.html", page_text = f"Abbrs imported from file {filename}.")
 		
 		

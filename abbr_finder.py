@@ -11,6 +11,7 @@ import docx
 
 from base_classes import *
 from abbr import Abbr
+from not_an_abbr import NotAnAbbr
 
 
 
@@ -63,25 +64,25 @@ class AbbrFinder(object):
 		return result
 	
 	
-	def format_abbrs(self, abbr_list):
-		"""format abbrs to printable form, for further use in text report
+	# def format_abbrs(self, abbr_list):
+	# 	"""format abbrs to printable form, for further use in text report
 		
-		arguments: abbr_list: list of Abbr or list of str
-		returns: formatted result str"""
-		self._logger.debug(f"format_abbr: got input: abbr_list: {abbr_list}")
-		if len(abbr_list) == 0:
-			self._logger.error("format_abbrs: got empty abbr_list, will return empty string")
-			return ""
-		result = ""
-		for abbr in abbr_list:
-			if isinstance(abbr, Abbr):
-				result += abbr.name + " - " + abbr.descr + "\n"
-			else:
-				try:
-					result += abbr + "\n"
-				except Exception as e:
-					self._logger.error(f"format_abbrs: got error while formatting {abbr}: {e}")
-		return result
+	# 	arguments: abbr_list: list of Abbr or list of str
+	# 	returns: formatted result str"""
+	# 	self._logger.debug(f"format_abbr: got input: abbr_list: {abbr_list}")
+	# 	if len(abbr_list) == 0:
+	# 		self._logger.error("format_abbrs: got empty abbr_list, will return empty string")
+	# 		return ""
+	# 	result = ""
+	# 	for abbr in abbr_list:
+	# 		if isinstance(abbr, Abbr):
+	# 			result += abbr.name + " - " + abbr.descr + "\n"
+	# 		else:
+	# 			try:
+	# 				result += abbr + "\n"
+	# 			except Exception as e:
+	# 				self._logger.error(f"format_abbrs: got error while formatting {abbr}: {e}")
+	# 	return result
 	
 	
 	def load_input_file(self, path_to_file):
@@ -138,14 +139,15 @@ class AbbrFinder(object):
 	
 	def find_abbrs_in_input_text(self):
 		self._logger.debug(f"find_abbrs_in_input_text: starting step 1")
-		# step 1 - find all abbrs (either known and unknown) in input words
+		# step 1 - find all abbrs (either known and unknown) and abbr exceptions in input words
 		self.all_found_abbrs = set()
 		self.found_known_abbrs = set()
+		self.found_known_not_an_abbrs = set()
 		for w in self.input_word_list:
 			if is_abbr(w) and not self.is_not_an_abbr(w):
 				self.all_found_abbrs.add(w)
 			if self.is_not_an_abbr(w):
-				self.found_known_not_an_abbrs.add(w)
+				self.found_known_not_an_abbrs.add(self.not_an_abbr_manager.get_not_an_abbr_by_name(w))
 		self._logger.debug(f"find_abbrs_in_input_text: found abbrs: {self.all_found_abbrs}, not_an_abbrs: {self.found_known_not_an_abbrs}")
 		self._logger.debug(f"find_abbrs_in_input_text: step 1 complete. starting step 2")
 		
@@ -172,7 +174,8 @@ class AbbrFinder(object):
 	
 	def gen_report(self):
 		self._report = AbbrFinderReport(found_known_abbrs = self.found_known_abbrs,
-			found_unknown_abbrs = self.found_unknown_abbrs)
+			found_unknown_abbrs = self.found_unknown_abbrs,
+			found_known_not_an_abbrs = self.found_known_not_an_abbrs)
 		self._logger.debug("gen_report: complete")
 		return self._report
 
@@ -189,6 +192,7 @@ class AbbrFinderReport(object):
 	"""create report for AbbrFinder"""
 	found_known_abbrs: List[Abbr] = field(default_factory = list)
 	found_unknown_abbrs: List[str] = field(default_factory = list)
+	found_known_not_an_abbrs: List[NotAnAbbr] = field(default_factory = list)
 	# all_found_abbrs: List = field(default_factory = list)
 	_report_text: str = ""
 	
@@ -207,6 +211,12 @@ class AbbrFinderReport(object):
 		# unknown
 		self._report_text += "\n\n\nUNKNOWN ABBREVIATIONS: \n"
 		self._report_text += self.format_abbrs(self.found_unknown_abbrs)
+		
+		# not_an_abbrs
+		self._report_text += "\n\n\nKNOWN EXCEPTIONS: \n"
+		for n in [naa.name for naa in self.found_known_not_an_abbrs]:
+			self._report_text += str(n) + "\n"
+		# self._report_text += str([naa.name for naa in self.found_known_not_an_abbrs])
 		
 		# all
 		self._report_text += "\n\n\nALL ABBREVIATIONS: \n"

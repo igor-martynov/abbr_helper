@@ -19,7 +19,7 @@
 				<br>
 				Groups:<br>
 				{% for g in all_groups %}
-				<label><input type="checkbox" name="group_{{ g._id }}" value="group_{{ g._id }}" {% if g in not_an_abbr.groups %} checked {% endif %}> {{ g.name }} {% if g in not_an_abbr.groups %} (NOW ASSIGNED) {% endif %} </label><br>
+				<label><input type="checkbox" name="group_{{ g._id }}" value="group_{{ g._id }}" {% if g in not_an_abbr.groups %} checked {% endif %}> {{ g.name }} {% if g in not_an_abbr.groups %} (NOW ASSIGNED) {% endif %} ({{ g.comment }}) </label><br>
 				{% endfor %}
 				<br>
 				<br>

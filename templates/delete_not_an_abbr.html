@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<meta charset="utf-8">
+		<link rel="stylesheet" href="{{ url_for('static', filename='abbr_helper.css') }} ">
+	</head>
+	
+	<body>
+		{% include 'header.jinja2.html' %}
+		<div>
+			<form class="space_between_scroll" action="" method="post">
+				Delete abbr exception {{ not_an_abbr }}?<br>
+				<br>
+				<input type="submit" value="Delete"><br>
+			</form>
+		</div>
+    
+    </body>
+</html>
