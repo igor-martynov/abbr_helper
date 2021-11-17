@@ -1,0 +1,11 @@
+[Unit]
+Description=AbbrHelper Web App
+
+[Service]
+Type=simple
+WorkingDirectory=/path/to/abbr_helper
+PIDFile=/tmp/abbr_helper_web_app.pid
+ExecStart=/path/to/abbr_helper/abbr_helper.py
+
+[Install]
+WantedBy=multi-user.target

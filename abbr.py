@@ -87,7 +87,6 @@ class AbbrDAO(BaseDAO):
 	"""docstring for AbbrDAO"""
 	def __init__(self, db = None, logger = None, factory = None):
 		super(AbbrDAO, self).__init__(db = db, logger = logger, factory = factory)
-		
 		pass
 	
 	

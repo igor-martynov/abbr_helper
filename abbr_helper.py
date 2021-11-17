@@ -160,7 +160,7 @@ class AbbrHelperWebApp(object):
 		
 		def create_edit_abbr_from_request(abbr = None):
 			"""
-			arguments: abbr: if it's None then it is create mode, otherwise edit mode"""
+			arguments: abbr: if None then it is create mode, if Abbr object - than edit mode"""
 			try:
 				abbr_name = request.form["abbreviation"]
 				descr = request.form["description"]
@@ -181,13 +181,15 @@ class AbbrHelperWebApp(object):
 				if abbr is None: # create mode
 					new_abbr = self.main_app.abbr_manager.create(name = abbr_name, descr = descr, comment = comment, disabled = disabled, groups = groups)	
 					return new_abbr
-				else: # edit mode
+				elif isinstance(abbr, Abbr): # edit mode
 					abbr.name = abbr_name
 					abbr.descr = descr
 					abbr.comment = comment
 					abbr.disabled = disabled
 					abbr.groups = groups
 					self.main_app.abbr_manager.save(abbr)
+				else:
+					self._logger.error(f"create_edit_abbr_from_request: unsupported type of abbr: {type(abbr)}")
 		
 		
 		def create_edit_group_from_request(group = None):
