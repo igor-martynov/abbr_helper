@@ -79,7 +79,7 @@ class GroupDAO(BaseDAO):
 		self._logger.debug(f"delete: will delete group {obj} and it's interconnects")
 		# group
 		self._db.execute_db_query("""DELETE FROM groups WHERE id == :_id""", {"_id": obj._id})
-		# abbr - group - those intercoencts shoud be already deleted on upper level
+		# abbr - group - those interconnects shoud be already deleted on upper level
 		self._db.execute_db_query("""DELETE FROM abbr_group WHERE group_id == :group_id""", {"group_id": obj._id})
 		self._logger.debug(f"delete: deleted group {obj}")
 		
@@ -99,7 +99,6 @@ class GroupDAO(BaseDAO):
 
 
 
-# new
 class GroupManager(BaseManager):
 	"""docstring for GroupManager"""
 	def __init__(self, db = None, logger = None):

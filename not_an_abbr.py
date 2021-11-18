@@ -60,7 +60,6 @@ class NotAnAbbrDAO(BaseDAO):
 		self._logger.debug(f"create: set back _id of newly created not_an_abbr: {obj._id}")
 		self.dict[obj._id] = obj
 		self._logger.debug(f"create: created and saved not_an_abbr: {obj}")
-		pass
 	
 	
 	def read(self, _id):
@@ -70,7 +69,6 @@ class NotAnAbbrDAO(BaseDAO):
 		new_not_an_abbr = self._factory(row1[0], row2)
 		self.dict[new_not_an_abbr._id] = new_not_an_abbr
 		return new_not_an_abbr
-		pass
 	
 	
 	def update(self, obj):
@@ -140,7 +138,6 @@ class NotAnAbbrFactory(BaseFactory):
 	
 
 
-# new
 class NotAnAbbrManager(BaseManager):
 	"""docstring for NotAnAbbrManager"""
 	def __init__(self, db = None, logger = None, group_manager = None):

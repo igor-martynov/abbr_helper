@@ -137,7 +137,6 @@ class BaseFactory(object):
 	"""Base class of all factories"""
 	def __init__(self):
 		super(BaseFactory, self).__init__()
-		
 		pass
 	
 	

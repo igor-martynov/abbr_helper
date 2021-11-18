@@ -64,27 +64,6 @@ class AbbrFinder(object):
 		return result
 	
 	
-	# def format_abbrs(self, abbr_list):
-	# 	"""format abbrs to printable form, for further use in text report
-		
-	# 	arguments: abbr_list: list of Abbr or list of str
-	# 	returns: formatted result str"""
-	# 	self._logger.debug(f"format_abbr: got input: abbr_list: {abbr_list}")
-	# 	if len(abbr_list) == 0:
-	# 		self._logger.error("format_abbrs: got empty abbr_list, will return empty string")
-	# 		return ""
-	# 	result = ""
-	# 	for abbr in abbr_list:
-	# 		if isinstance(abbr, Abbr):
-	# 			result += abbr.name + " - " + abbr.descr + "\n"
-	# 		else:
-	# 			try:
-	# 				result += abbr + "\n"
-	# 			except Exception as e:
-	# 				self._logger.error(f"format_abbrs: got error while formatting {abbr}: {e}")
-	# 	return result
-	
-	
 	def load_input_file(self, path_to_file):
 		if not os.path.isfile(path_to_file):
 			self._logger.error(f"load_input_file: this is not a file - {path_to_file}")
@@ -223,9 +202,6 @@ class AbbrFinderReport(object):
 		self._report_text += self.format_abbrs(self.all_found_abbrs)
 		return self._report_text
 
-	
-	# def __repr__(self):
-	# 	return self.text
 	
 	
 	@property

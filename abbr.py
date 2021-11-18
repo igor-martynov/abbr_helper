@@ -220,7 +220,8 @@ class AbbrManager(BaseManager):
 	
 	
 	def get_abbr_by_id(self, _id):
-		"""
+		"""find abbr by id
+		
 		arguments: _id: int
 		returns: object of abbr"""
 		try:
