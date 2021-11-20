@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# 2021-11-14
+# 2021-11-20
 
 __version__ = "0.9.7"
 __author__ = "Igor Martynov (phx.planewalker@gmail.com)"
@@ -9,6 +9,7 @@ __author__ = "Igor Martynov (phx.planewalker@gmail.com)"
 
 """
 This app finds abbreviations in text and describes them from inner DB.
+Web interface will be launched.
 
 Currently supported docx and txt files.
 
@@ -48,10 +49,6 @@ class AbbrHelperApp(object):
 		super(AbbrHelperApp, self).__init__()
 		
 		self._db = db
-		# self.input_word_list = []
-		# self.input_text = ""
-		# self.result_abbrs = set()
-		
 		self.db_manager = None
 		self.abbr_manager = None
 		self.group_manager = None
@@ -59,7 +56,6 @@ class AbbrHelperApp(object):
 		self.abbr_finder = None
 		
 		self._logger = logger
-		# self.report = ""
 		
 		self.init_all()
 	
@@ -101,7 +97,10 @@ class AbbrHelperApp(object):
 
 
 class AbbrHelperWebApp(object):
-	"""docstring for AbbrHelperWebApp"""
+	"""web interface for AbbrHelperApp
+	
+	main method is run_web_interface(), which will launch web interface
+	"""
 	
 	def __init__(self, db_file = None, log_file = None):
 		super(AbbrHelperWebApp, self).__init__()
@@ -151,7 +150,6 @@ class AbbrHelperWebApp(object):
 	
 	def run_web_interface(self):
 		self._logger.info(f"==== STARTING AbbrHelper v{__version__} ====")
-		
 		self.web_app = Flask(__name__)
 		self.web_app.secret_key = "qwxnmkqempemjabefwbdirbvdfcwkh"
 		self.web_app.config["UPLOAD_FOLDER"] = self.UPLOAD_DIR
@@ -347,13 +345,11 @@ class AbbrHelperWebApp(object):
 		
 		@self.web_app.route("/show-all-abbrs", methods = ["GET"])
 		def show_all_abbrs():
-			# self._logger.debug(f"show_all_abbrs: will display self.main_app.abbr_manager.dict: {self.main_app.abbr_manager.dict}")
 			return render_template("show_all_abbrs.html", abbrs = self.main_app.abbr_manager.dict)
 	
 		
 		@self.web_app.route("/show-all-groups", methods = ["GET"])
 		def show_all_groups():
-			# self._logger.debug(f"show_all_groups: will display self.main_app.group_manager.dict")
 			return render_template("show_all_groups.html", groups = self.main_app.group_manager.dict)
 		
 		
@@ -414,7 +410,6 @@ class AbbrHelperWebApp(object):
 				create_edit_not_an_abbr_from_request(not_an_abbr = not_an_abbr)
 				self._logger.debug("returning page create_edit_not_an_abbr.html")
 				return render_template("create_edit_not_an_abbr.html", not_an_abbr = not_an_abbr, all_groups = self.main_app.group_manager.dict.values())
-			pass
 		
 		
 		@self.web_app.route("/delete-not-an-abbr/<int:not_an_abbr_id>", methods = ["GET", "POST"])
@@ -424,8 +419,7 @@ class AbbrHelperWebApp(object):
 				return render_template("delete_not_an_abbr.html", not_an_abbr = found_not_an_abbr)
 			if request.method == "POST":
 				self.main_app.not_an_abbr_manager.delete(found_not_an_abbr)
-				return render_template("blank.html", page_text = f"<br>Abbreviation exception {found_not_an_abbr} remved from system. <br>")
-			pass
+				return render_template("blank.html", page_text = f"<br>Abbreviation exception {found_not_an_abbr} removed from system. <br>")
 		
 		
 		@self.web_app.route("/show-all-not-an-abbrs", methods = ["GET"])

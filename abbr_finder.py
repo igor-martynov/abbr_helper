@@ -157,7 +157,6 @@ class AbbrFinder(object):
 			found_known_not_an_abbrs = self.found_known_not_an_abbrs)
 		self._logger.debug("gen_report: complete")
 		return self._report
-
 	
 	
 	@property
@@ -213,7 +212,7 @@ class AbbrFinderReport(object):
 		"""format abbrs to printable form, for further use in text report
 		
 		arguments: abbr_list: list of Abbr or list of str
-		returns: formatted result str"""
+		returns: formatted result as str"""
 		result = ""
 		sorted_list = list(abbr_list)
 		sorted_list.sort(key = lambda abbr: abbr.name if isinstance(abbr, Abbr) else abbr)

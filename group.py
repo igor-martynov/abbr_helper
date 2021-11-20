@@ -38,14 +38,12 @@ class GroupFactory(BaseFactory):
 		new_obj = Group(_id =_id, name = name, comment = comment, disabled = disabled)
 		return new_obj
 
-	
-	
-# new
+
+
 class GroupDAO(BaseDAO):
 	"""docstring for GroupDAO"""
 	def __init__(self, db = None, logger = None, factory = None):
 		super(GroupDAO, self).__init__(db = db, logger = logger, factory = factory)
-		
 		pass
 	
 	
@@ -107,13 +105,10 @@ class GroupManager(BaseManager):
 		# self._groupDAO = None
 		self.abbr_manager = None
 		self.init_all()
-		pass
 	
 	
 	def init_all(self):
-		# group_factory
 		self._factory = GroupFactory(logger = self._logger.getChild("GroupFactory"))
-		# groupDAO
 		self._DAO = GroupDAO(db = self._db, logger = self._logger.getChild("GroupDAO"), factory = self._factory.create_from_db_row)
 		self._logger.debug("init_all: complete")
 		
@@ -167,6 +162,7 @@ class GroupManager(BaseManager):
 	
 	
 	def create(self, name = None, comment = None, disabled = False):
+		"""create new group and save it to DB"""
 		if name is None:
 			self._logger.error("create: name is None, so can't create new group")
 			return
@@ -189,7 +185,6 @@ class GroupManager(BaseManager):
 				self.abbr_manager.save(a)
 		del(self.dict[obj._id])
 		self._logger.info(f"delete: obj with id {obj_id} deleted both from dict and DB")
-		pass
 	
 	
 	def save(self, obj):

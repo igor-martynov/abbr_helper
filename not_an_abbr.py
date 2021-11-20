@@ -144,13 +144,10 @@ class NotAnAbbrManager(BaseManager):
 		super(NotAnAbbrManager, self).__init__(db = db, logger = logger)
 		self.group_manager = group_manager
 		self.init_all()
-		pass
 	
 	
 	def init_all(self):
-		# not_an_abbr_factory
 		self._factory = NotAnAbbrFactory(logger = self._logger.getChild("NotAnAbbrFactory"), group_manager = self.group_manager)
-		# not_an_abbrDAO
 		self._DAO = NotAnAbbrDAO(db = self._db, logger = self._logger.getChild("NotAnAbbrDAO"), factory = self._factory.create_from_db_row)
 		self._logger.debug("init_all: complete")
 	
@@ -201,7 +198,6 @@ class NotAnAbbrManager(BaseManager):
 		self._DAO.create(new_not_an_abbr)
 		self._logger.debug(f"create: created not_an_abbr {new_not_an_abbr}")
 		return new_not_an_abbr
-		pass
 	
 	
 	def delete(self, not_an_abbr):

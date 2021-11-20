@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+
 from dataclasses import dataclass, field
 from typing import List
 
@@ -11,7 +12,7 @@ from group import Group
 
 @dataclass
 class Abbr(object):
-	"""docstring for Abbr"""
+	"""Abbr represents one abbreviation, for example, 'CPU - Central Processing Unit'. And the same abbreviation with different description (i.e. 'CPU - Caribbean Postal Union') will be different abbreviation (and unique object). """
 	name: str
 	descr: str
 	comment: str
@@ -159,13 +160,10 @@ class AbbrManager(BaseManager):
 	"""
 	def __init__(self, db = None, logger = None, group_manager = None):
 		super(AbbrManager, self).__init__(db = db, logger = logger)
-		# self.dict = {}
 		self._factory = None
 		# self._DAO = None
 		self.group_manager = group_manager
-		
 		self.init_all()
-		pass
 	
 	
 	def init_all(self):

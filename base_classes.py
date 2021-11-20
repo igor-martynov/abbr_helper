@@ -45,7 +45,6 @@ class DBQueryExecutor(object, metaclass = MetaSingleton):
 	
 	def __init__(self, db_file = ""):
 		super(DBQueryExecutor, self).__init__()
-		
 		self.DB_FILE = db_file
 		self.create_new_db()
 		self.cursor_last_row_id = None
