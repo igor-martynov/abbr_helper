@@ -19,7 +19,7 @@ INSTALL
     pip3 install flask
     pip3 install docx
   
-  2. Copy directory to desired destination
+  2. Copy project directory to desired destination
   
   3. Set up autostart, if it is required.
     For systemd-managed Linux distros, edit supplied .service file to reflect path to abbr_helper.py - please edit WorkingDirectory and ExecStart vars. Then copy .service file to systemd service dir. 

@@ -231,6 +231,7 @@ class AbbrManager(BaseManager):
 	
 	
 	def already_exist(self, name, descr):
+		"""return True if abbr with descr already exist, False otherwise"""
 		candidates = self.get_abbrs_by_name(name)
 		for c in candidates:
 			if c.descr == descr:
