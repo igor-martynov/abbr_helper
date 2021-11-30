@@ -450,20 +450,23 @@ class AbbrHelperWebApp(object):
 
 
 def print_help():
+	print()
 	print(f"    {os.path.abspath(__file__)}: Manage abbreviations in web interface.")
 	print("    Web interface will be launced on all network interfaces.")
-	print("    Use --db-file to specify DB file.")
+	print("    Use --db-file PATH_TO_FILE to specify DB file.")
+	print()
+
 
 
 if __name__ == "__main__":
 	args = sys.argv[1:]
-	
+	if "-h" or "--help" in args:
+		print_help()
+		sys.exit(0)
 	if "--db-file" in args:
 		DB_FILE == args[args.index("--db-file") + 1]
 	else:
 		DB_FILE = db_file = os.path.join(os.path.abspath(os.path.dirname(__file__)), "abbr_helper.db")
-	
-	
 	
 	
 	ahwapp = AbbrHelperWebApp(db_file = DB_FILE)
