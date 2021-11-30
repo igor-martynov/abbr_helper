@@ -9,10 +9,8 @@
 		{% include 'header.jinja2.html' %}
 		<div>
 			<br>
-			ALL FOUND ABBRS:<br>
-			{% for abbr in found_abbrs %}
-			{{ abbr }},
-			{% endfor %}
+			ALL FOUND ABBRS: (total: {{ found_abbrs | length }})<br>
+			{% for abbr in found_abbrs %}{{ abbr }}, {% endfor %}
 			<br>
 			<br>
 			<br>

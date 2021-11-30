@@ -33,7 +33,7 @@ class Abbr(object):
 				if not g.disabled:
 					return False
 			return True
-		
+	
 	
 	@property
 	def group_id_list(self):

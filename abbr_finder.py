@@ -15,6 +15,15 @@ from not_an_abbr import NotAnAbbr
 
 
 
+def is_temp_disabled(abbr, temp_disabled_groups):
+	"""if abbr is temporarily disabled"""
+	for g in abbr.groups:
+		if g in temp_disabled_groups:
+			return True
+	return False
+	
+
+
 class AbbrFinder(object):
 	"""find abbrs in text"""
 	
@@ -34,6 +43,8 @@ class AbbrFinder(object):
 		
 		self.input_text = ""
 		self.input_word_list = []
+		
+		self.temp_disabled_groups = []
 		
 		self.all_found_abbrs = set()
 		self.found_known_abbrs = set()
@@ -62,6 +73,16 @@ class AbbrFinder(object):
 		for c in self.WORD_DELIMETERS:
 			result = result.replace(c, " ")
 		return result
+	
+	
+	def set_temp_disabled_groups(self, group_list):
+		self.temp_disabled_groups = group_list
+		self._logger.info(f"set_temp_disabled_groups: these groups are set to be disabled: {self.temp_disabled_groups}")
+	
+	
+	def unset_temp_disabled_groups(self):
+		self.temp_disabled_groups = []
+		self._logger.debug("unset_temp_disabled_groups: unset self.temp_disabled_groups")
 	
 	
 	def load_input_file(self, path_to_file):
@@ -107,6 +128,7 @@ class AbbrFinder(object):
 	def find_abbrs_in_file(self, path_to_file):
 		self.load_input_file(path_to_file)
 		self.find_abbrs_in_input_text()
+		self.unset_temp_disabled_groups()
 	
 	
 	def is_not_an_abbr(self, not_an_abbr):
@@ -138,7 +160,7 @@ class AbbrFinder(object):
 			tmp_found = self.abbr_manager.get_abbrs_by_name(a)
 			found = []
 			for a in tmp_found:
-				if not a.disabled:
+				if not a.disabled and not is_temp_disabled(a, self.temp_disabled_groups):
 					found.append(a)
 				else:
 					self._logger.debug(f"find_abbrs_in_input_text: abbr {a} will be ignored because it is disabled")
@@ -183,21 +205,21 @@ class AbbrFinderReport(object):
 	def text(self):
 		self._report_text = ""
 		# known
-		self._report_text += "\n\nKNOWN ABBREVIATIONS: \n"
+		self._report_text += "\n\nKNOWN ABBREVIATIONS: \n" + f"(total: {len(self.found_known_abbrs)})" + "\n\n"
 		self._report_text += self.format_abbrs(self.found_known_abbrs)
 		
 		# unknown
-		self._report_text += "\n\n\nUNKNOWN ABBREVIATIONS: \n"
+		self._report_text += "\n\n\n\nUNKNOWN ABBREVIATIONS: \n" + f"(total: {len(self.found_unknown_abbrs)})" + "\n\n"
 		self._report_text += self.format_abbrs(self.found_unknown_abbrs)
 		
 		# not_an_abbrs
-		self._report_text += "\n\n\nKNOWN EXCEPTIONS: \n"
+		self._report_text += "\n\n\n\nKNOWN EXCEPTIONS: \n" + f"(total: {len(self.found_known_not_an_abbrs)})" + "\n\n"
 		for n in [naa.name for naa in self.found_known_not_an_abbrs]:
 			self._report_text += str(n) + "\n"
 		# self._report_text += str([naa.name for naa in self.found_known_not_an_abbrs])
 		
 		# all
-		self._report_text += "\n\n\nALL ABBREVIATIONS: \n"
+		self._report_text += "\n\n\n\nALL ABBREVIATIONS: \n" + f"(total: {len(self.all_found_abbrs)})" + "\n\n"
 		self._report_text += self.format_abbrs(self.all_found_abbrs)
 		return self._report_text
 

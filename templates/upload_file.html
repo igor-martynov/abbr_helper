@@ -17,6 +17,10 @@
 				<input type="file" name="file"><br>
 				<br>
 				<br>
+				{% for g in groups %}
+				<label><input type="checkbox" name="group_{{ g._id }}" value="group_{{ g._id }}"> {{ g.name }} {% if g.disabled %} (already disabled) {% endif %} ({{ g.comment }}) </label><br>
+				{% endfor %}
+				<br>
 				<br>
 				<input type="submit" value="Upload file"><br>
 			</form>

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# 2021-11-20
+# 2021-11-30
 
-__version__ = "0.9.7"
+__version__ = "0.9.8"
 __author__ = "Igor Martynov (phx.planewalker@gmail.com)"
 
 
@@ -43,7 +43,10 @@ from db_importer import *
 
 
 class AbbrHelperApp(object):
-	"""docstring for AbbrHelperApp"""
+	"""AbbrHelper Application class
+	
+	Will initialize all sub-managers (db_manager, abbr_manager, group_manager, not_an_abbr_manager, abbr_finder).
+	Will load all data from DB (using these managers)."""
 	
 	def __init__(self, logger = None, db = None):
 		super(AbbrHelperApp, self).__init__()
@@ -251,7 +254,7 @@ class AbbrHelperWebApp(object):
 		@self.web_app.route("/upload-input-file", methods = ["GET", "POST"])
 		def upload_input_file():
 			if request.method == "GET":
-				return render_template("upload_file.html")
+				return render_template("upload_file.html", groups = self.main_app.group_manager.dict.values())
 				
 			if request.method == "POST":
 				if "file" not in request.files:
@@ -261,6 +264,16 @@ class AbbrHelperWebApp(object):
 				if f.filename == "":
 					self._logger.error("upload_input_file: no file selected in form")
 					return redirect(request.url)
+
+				# temporarily disabled groups parsing
+				temp_disabled_groups = []
+				for _id, g in self.main_app.group_manager.dict.items():
+					if request.form.get(f"group_{_id}") is not None:
+						temp_disabled_groups.append(g)
+				if len(temp_disabled_groups) != 0:
+					self.main_app.abbr_finder.set_temp_disabled_groups(temp_disabled_groups)
+				
+				# file upload
 				if f:
 					try:
 						filename = secure_filename(f.filename)

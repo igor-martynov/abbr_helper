@@ -15,7 +15,7 @@ class Group(object):
 	comment: str
 	disabled: bool
 	_id: int = -1 #
-
+	
 	
 
 # new

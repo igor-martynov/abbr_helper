@@ -13,6 +13,8 @@ You can add new abbreviations to DB via [Create abbreviation] button.
 Other supported actions for Abbreviations: edit, delete, disable.
 
 
+
+
 INSTALL
 
   1. Firstly, install prerequesite packages via pip
