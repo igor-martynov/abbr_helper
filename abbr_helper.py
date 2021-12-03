@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# 2021-11-30
+# 2021-12-03
 
-__version__ = "0.9.8"
+__version__ = "0.9.9"
 __author__ = "Igor Martynov (phx.planewalker@gmail.com)"
 
 
@@ -11,17 +11,18 @@ __author__ = "Igor Martynov (phx.planewalker@gmail.com)"
 This app finds abbreviations in text and describes them from inner DB.
 Web interface will be launched.
 
-Currently supported docx and txt files.
+Currently are supported docx and txt files.
 
 """
 
-# basic imports
+
 import os
 import datetime
 import sys
 import glob
 import traceback
 
+import configparser
 
 # flask web interface
 from flask import Flask, flash, request, redirect, url_for, Response, render_template
@@ -43,7 +44,7 @@ from db_importer import *
 
 
 class AbbrHelperApp(object):
-	"""AbbrHelper Application class
+	"""AbbrHelper Application class.
 	
 	Will initialize all sub-managers (db_manager, abbr_manager, group_manager, not_an_abbr_manager, abbr_finder).
 	Will load all data from DB (using these managers)."""
@@ -102,25 +103,28 @@ class AbbrHelperApp(object):
 class AbbrHelperWebApp(object):
 	"""web interface for AbbrHelperApp
 	
-	main method is run_web_interface(), which will launch web interface
-	"""
+	main method is run_web_interface(), which will launch web interface"""
 	
-	def __init__(self, db_file = None, log_file = None):
+	def __init__(self, db_file = None, log_file = None, config_file = os.path.join(os.path.abspath(os.path.dirname(__file__)), "abbr_helper.conf")):
 		super(AbbrHelperWebApp, self).__init__()
 		
-		self.host = "0.0.0.0"
-		self.port = 8080
+		self.CONFIG_FILE = config_file
+		self.__config = configparser.ConfigParser()
+		self.__config.read(self.CONFIG_FILE)
 		
-		self.LOG_FILE = "/var/log/abbr_helper.log" if log_file is None else log_file
-		self.DB_FILE = db_file
+		self.host = self.__config.get("web", "host")
+		self.port = int(self.__config.get("web", "port"))
+		
+		self.LOG_FILE = self.__config.get("main", "log_file") if log_file is None else log_file
+		self.DB_FILE = db_file if db_file is not None else self.__config.get("main", "db_file")
 		
 		self.main_app = None
 		self.web_app = None
 		
 		# main app parameters
 		self.ALLOWED_EXTENSIONS = ["txt", "TXT", "docx", "DOCX"]
-		self.UPLOAD_DIR = "/tmp/abbrhelper"
-		self.MAX_FILE_SIZE = 250 * 1024 * 1024 # in bytes
+		self.UPLOAD_DIR = self.__config.get("main", "upload_dir")
+		self.MAX_FILE_SIZE = int(self.__config.get("main", "max_file_size"))
 		
 		# logger initialization
 		self._logger = logging.getLogger("abbr_helper_web_app")
@@ -174,10 +178,12 @@ class AbbrHelperWebApp(object):
 				self._logger.debug(f"create_edit_abbr_from_request: got groups: {groups}")
 			except Exception as e:
 				self._logger.error("create_edit_abbr_from_request: error while parsing request: " + str(e) + ", traceback: " + traceback.format_exc())
+				
 			if len(abbr_name) < 2:
 				self._logger.info(f"create_edit_abbr_from_request: did not added abbr. Reason: abbr {abbr_name} did not passed the check, too short")
 			elif len(descr) < 3:
 				self._logger.info(f"create_edit_abbr_from_request: did not added abbr. Reason: description {descr} did not passed the check, too short")
+				
 			else:
 				if abbr is None: # create mode
 					new_abbr = self.main_app.abbr_manager.create(name = abbr_name, descr = descr, comment = comment, disabled = disabled, groups = groups)	
@@ -460,7 +466,7 @@ def print_help():
 
 if __name__ == "__main__":
 	args = sys.argv[1:]
-	if "-h" or "--help" in args:
+	if "-h" in args or "--help" in args:
 		print_help()
 		sys.exit(0)
 	if "--db-file" in args:

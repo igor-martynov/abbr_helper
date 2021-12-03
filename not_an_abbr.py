@@ -11,7 +11,7 @@ from group import Group
 
 @dataclass
 class NotAnAbbr(object):
-	"""docstring for NotAnAbbr"""
+	"""NotAnAbbr is literally not an abbreviation - abbreviation exception"""
 	name: str
 	comment: str
 	disabled: bool
@@ -47,7 +47,7 @@ class NotAnAbbr(object):
 	
 
 class NotAnAbbrDAO(BaseDAO):
-	"""docstring for NotAnAbbrDAO"""
+	"""DAO for NotAnAbbr"""
 	def __init__(self, db = None, logger = None, factory = None):
 		super(NotAnAbbrDAO, self).__init__(db = db, logger = logger, factory = factory)
 		pass
@@ -109,7 +109,7 @@ class NotAnAbbrDAO(BaseDAO):
 	
 
 class NotAnAbbrFactory(BaseFactory):
-	"""docstring for NotAnAbbrFactory"""
+	"""factory for NotAnAbbr"""
 	def __init__(self, logger = None, group_manager = None):
 		super(NotAnAbbrFactory, self).__init__()
 		self._logger = logger
@@ -139,7 +139,7 @@ class NotAnAbbrFactory(BaseFactory):
 
 
 class NotAnAbbrManager(BaseManager):
-	"""docstring for NotAnAbbrManager"""
+	"""NotAnAbbr Manager"""
 	def __init__(self, db = None, logger = None, group_manager = None):
 		super(NotAnAbbrManager, self).__init__(db = db, logger = logger)
 		self.group_manager = group_manager

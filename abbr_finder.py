@@ -193,7 +193,6 @@ class AbbrFinderReport(object):
 	found_known_abbrs: List[Abbr] = field(default_factory = list)
 	found_unknown_abbrs: List[str] = field(default_factory = list)
 	found_known_not_an_abbrs: List[NotAnAbbr] = field(default_factory = list)
-	# all_found_abbrs: List = field(default_factory = list)
 	_report_text: str = ""
 	
 	@property
@@ -216,7 +215,6 @@ class AbbrFinderReport(object):
 		self._report_text += "\n\n\n\nKNOWN EXCEPTIONS: \n" + f"(total: {len(self.found_known_not_an_abbrs)})" + "\n\n"
 		for n in [naa.name for naa in self.found_known_not_an_abbrs]:
 			self._report_text += str(n) + "\n"
-		# self._report_text += str([naa.name for naa in self.found_known_not_an_abbrs])
 		
 		# all
 		self._report_text += "\n\n\n\nALL ABBREVIATIONS: \n" + f"(total: {len(self.all_found_abbrs)})" + "\n\n"

@@ -20,7 +20,7 @@ class Group(object):
 
 # new
 class GroupFactory(BaseFactory):
-	"""docstring for GroupFactory"""
+	"""Factory for Group"""
 	def __init__(self, logger = None):
 		super(GroupFactory, self).__init__()
 		self._logger = logger
@@ -41,7 +41,7 @@ class GroupFactory(BaseFactory):
 
 
 class GroupDAO(BaseDAO):
-	"""docstring for GroupDAO"""
+	"""DAO for Group"""
 	def __init__(self, db = None, logger = None, factory = None):
 		super(GroupDAO, self).__init__(db = db, logger = logger, factory = factory)
 		pass
@@ -98,7 +98,7 @@ class GroupDAO(BaseDAO):
 
 
 class GroupManager(BaseManager):
-	"""docstring for GroupManager"""
+	"""Group Manager"""
 	def __init__(self, db = None, logger = None):
 		super(GroupManager, self).__init__(db = db, logger = logger)
 		# self._group_factory = None

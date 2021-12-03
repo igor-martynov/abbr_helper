@@ -1,3 +1,7 @@
+# service file for abbr_helper
+# Please edit according to your requirements
+# 
+
 [Unit]
 Description=AbbrHelper Web App
 

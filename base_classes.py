@@ -82,7 +82,7 @@ class DBQueryExecutor(object, metaclass = MetaSingleton):
 	
 	
 	def execute_db_query(self, query, *argv):
-		"""execute DB query. DB connection will be created, query executed, then DB connection is destroyed.
+		"""execute DB query. DB connection will be created, query executed, then DB connection is destroyed. - all the safe way
 		
 		arguments: same as in sqlite.cursor.execute()
 				query: string of query
@@ -149,7 +149,7 @@ class BaseFactory(object):
 
 
 class BaseManager(object):
-	"""docstring for BaseManager"""
+	"""Base class for all managers"""
 	def __init__(self, db = None, logger = None):
 		super(BaseManager, self).__init__()
 		self.dict = {}
