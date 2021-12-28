@@ -47,7 +47,7 @@ class AbbrHelperApp(object):
 	"""AbbrHelper Application class.
 	
 	Will initialize all sub-managers (db_manager, abbr_manager, group_manager, not_an_abbr_manager, abbr_finder).
-	Will load all data from DB (using these managers)."""
+	Data will be loaded on-demand using SQL Alchemy."""
 	
 	def __init__(self, logger = None, db = None):
 		super(AbbrHelperApp, self).__init__()
@@ -450,7 +450,7 @@ class AbbrHelperWebApp(object):
 		self.web_app.jinja_env.filters["empty_on_None"] = empty_on_None
 		self.web_app.jinja_env.filters["empty_filter"] = empty_filter
 		
-		self._logger.debug("run_web_interface: launching web app interface...")
+		self._logger.debug("run_web_interface: launching web interface...")
 		self.web_app.run(host = self.host, port = self.port, use_reloader = False)
 	
 
