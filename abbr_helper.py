@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# 2021-12-03
+# 2022-01-14
 
 __version__ = "0.9.9"
 __author__ = "Igor Martynov (phx.planewalker@gmail.com)"
@@ -47,20 +47,17 @@ class AbbrHelperApp(object):
 	"""AbbrHelper Application class.
 	
 	Will initialize all sub-managers (db_manager, abbr_manager, group_manager, not_an_abbr_manager, abbr_finder).
-	Data will be loaded on-demand using SQL Alchemy."""
+	Data will be loaded on-demand using SQL Alchemy mapping."""
 	
 	def __init__(self, logger = None, db = None):
 		super(AbbrHelperApp, self).__init__()
-		
 		self._db = db
 		self.db_manager = None
 		self.abbr_manager = None
 		self.group_manager = None
 		self.not_an_abbr_manager = None
 		self.abbr_finder = None
-		
 		self._logger = logger
-		
 		self.init_all()
 	
 	
@@ -92,7 +89,7 @@ class AbbrHelperApp(object):
 		for a, d in db_importer.new_abbr_dict.items():
 			self._logger.debug(f"import_from_csv_db: importing item {a}, {d}")
 			if self.abbr_manager.already_exist(a, d[0]):
-				self._logger.info(f"import_from_csv_db: will not add abbr {a} and descr {d[0]}. Reason: already exist.")
+				self._logger.info(f"import_from_csv_db: will not add abbr {a} and descr {d[0]}. Reason: abbr already exist.")
 				continue
 			else:
 				self._logger.debug(f"import_from_csv_db: will add abbr {a} and descr {d[0]}.")
