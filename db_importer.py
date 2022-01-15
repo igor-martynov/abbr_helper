@@ -24,7 +24,7 @@ class DBImporter(object):
 		fields = line.split(self.DB_DIVIDER)
 		# if fields[0].islower():
 		# 	return False
-		# TODO: проверка всех полей
+		# TODO: check all fields
 		return True
 	
 	

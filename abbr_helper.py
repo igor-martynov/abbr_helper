@@ -82,7 +82,7 @@ class AbbrHelperApp(object):
 	
 	
 	def import_from_csv_db(self, filename):
-		COMMENT_FOR_IMPORTED = f"Imported from file {filename}"
+		COMMENT_FOR_IMPORTED = f"Imported from file {os.path.basename(filename)}"
 		self._logger.debug(f"import_from_csv_db: starting with filename {filename}")
 		db_importer = DBImporter(logger = self._logger.getChild("DBImporter"))
 		db_importer.load_db_from_file(filename)

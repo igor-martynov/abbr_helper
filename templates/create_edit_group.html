@@ -20,7 +20,7 @@
 				<br>
 				<br>
 				<br>
-				Abbreviations:<br>
+				Abbreviations in this group:<br>
 				{% for a in all_abbrs %}
 				<label><input type="checkbox" name="abbr_{{ a._id }}" value="abbr_{{ a._id }}" {% if group in a.groups %} checked {% endif %}> {{ a.name }} {% if group in a.groups %} (NOW ASSIGNED) {% endif %} - {{ a.descr }} </label><br>
 				{% endfor %}

@@ -142,7 +142,7 @@ class AbbrDAO(BaseDAO):
 			self._logger.info("load_all: DB seems to be empty?..")
 			return
 		id_list = row
-		self._logger.debug(f"load_all: got initial list of IDs: {id_list}, row is: {row}")
+		self._logger.debug(f"load_all: got initial list of IDs: {id_list}, row is: {row}. will load now.")
 		for i in id_list:
 			self.dict[i[0]] = self.read(i[0])
 		self._logger.debug(f"load_all: finally loaded these abbrs: {self.dict}")
